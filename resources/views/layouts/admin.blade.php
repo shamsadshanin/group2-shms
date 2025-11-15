@@ -135,7 +135,7 @@
 
     <!-- Main Footer -->
     <footer class="main-footer">
-        Copyright © 2024-2025 <a href="#">Group 15</a>.</strong> All rights reserved.
+        Copyright © 2025-2026 <a href="#">Group 02</a>.</strong> All rights reserved.
     </footer>
 </div>
 <!-- ./wrapper -->
