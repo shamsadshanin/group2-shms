@@ -9,8 +9,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('suppliers', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+                    $table->id('SupplierID');
+                    $table->string('CompanyName', 100);
+                    $table->string('ContactPerson', 100)->nullable();
+                    $table->string('Email')->nullable();
+                    $table->string('Phone', 20);
+                    $table->text('Address')->nullable();
+                    $table->string('City', 50)->nullable();
+                    $table->string('Country', 50)->nullable();
+                    $table->boolean('IsActive')->default(true);
+                    $table->timestamps();
+
+                    $table->index('CompanyName');
+                    $table->index('IsActive');
         });
     }
 
