@@ -30,7 +30,8 @@ return new class extends Migration
             $table->boolean('IsActive')->default(true);
             $table->timestamps();
 
-            // Add indexes for better performance
+
+          // Add indexes for better performance
             $table->index('CategoryID');
             $table->index('SupplierID');
             $table->index('SKU');
