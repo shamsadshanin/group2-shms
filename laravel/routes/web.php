@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DoctorController;
+use App\Http\Controllers\LabController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,11 +63,13 @@ Route::middleware(['auth'])->group(function () {
         })->name('dashboard');
     });
 
-    // == LAB TECHNICIAN (Nowshin Nawar) ==
-    Route::prefix('lab')->name('lab.')->group(function () {
-        Route::get('/dashboard', function() {
-            return view('lab.dashboard');
-        })->name('dashboard');
+    // Lab Technician Routes
+    Route::middleware(['auth', 'lab.technician'])->prefix('lab')->name('lab.')->group(function () {
+        Route::get('/dashboard', [LabController::class, 'dashboard'])->name('dashboard');
+        Route::post('/investigation/{id}', [LabController::class, 'updateInvestigation'])->name('investigation.update');
+        Route::post('/investigation/{id}/assign', [LabController::class, 'assignToMe'])->name('investigation.assign');
+        Route::get('/history', [LabController::class, 'investigationHistory'])->name('history');
+        Route::get('/report/{id}/download', [LabController::class, 'downloadReport'])->name('report.download');
     });
 
     // == PHARMACIST (Md. Mustain Bellah) ==
