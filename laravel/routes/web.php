@@ -117,12 +117,9 @@ Route::middleware(['auth'])->group(function () {
     | LAB TECHNICIAN ROUTES
     |--------------------------------------------------------------------------
     */
-    Route::middleware(['lab.technician'])
-        ->prefix('lab')
-        ->name('lab.')
-        ->group(function () {
-
+    Route::middleware(['auth', 'lab.technician'])->prefix('lab')->name('lab.')->group(function () {
         Route::get('/dashboard', [LabController::class, 'dashboard'])->name('dashboard');
+        Route::get('/investigations', [LabController::class, 'investigations'])->name('investigations');
         Route::post('/investigation/{id}', [LabController::class, 'updateInvestigation'])->name('investigation.update');
         Route::post('/investigation/{id}/assign', [LabController::class, 'assignToMe'])->name('investigation.assign');
         Route::get('/history', [LabController::class, 'investigationHistory'])->name('history');
