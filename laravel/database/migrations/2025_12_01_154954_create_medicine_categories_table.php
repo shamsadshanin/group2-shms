@@ -6,24 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
         Schema::create('medicine_categories', function (Blueprint $table) {
-                    $table->id('CategoryID');
-                    $table->string('CategoryName', 100);
-                    $table->text('Description')->nullable();
-                    $table->boolean('IsActive')->default(true);
-                    $table->timestamps();
+            $table->id('CategoryID');
+            $table->string('CategoryName', 100);
+            $table->text('Description')->nullable();
+            $table->boolean('IsActive')->default(true);
+            $table->timestamps();
 
-                    $table->index('CategoryName');
-                    $table->index('IsActive');
+            $table->index('CategoryName');
+            $table->index('IsActive');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('medicine_categories');
     }
