@@ -227,4 +227,62 @@ class LabController extends Controller
                            ->with('error', 'Failed to download report.');
         }
     }
+    public function investigations(Request $request)
+    {
+        $user = Auth::user();
+        $technician = LabTechnician::where('user_id', $user->id)->firstOrFail();
+
+        $query = Investigation::with(['patient', 'testType', 'doctor', 'technician'])
+                    ->orderBy('Priority', 'desc')
+                    ->orderBy('created_at', 'asc');
+
+        // Apply filters similar to dashboard
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->whereHas('patient', function($q2) use ($search) {
+                    $q2->where('Name', 'like', "%{$search}%")
+                       ->orWhere('Email', 'like', "%{$search}%");
+                })->orWhereHas('testType', function($q2) use ($search) {
+                    $q2->where('TestName', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        if ($request->has('status') && $request->status !== 'all') {
+            $query->where('Status', $request->status);
+        }
+
+        if ($request->has('priority') && $request->priority !== 'all') {
+            $query->where('Priority', $request->priority);
+        }
+
+        if ($request->has('test_type') && $request->test_type !== 'all') {
+            $query->where('TestTypeID', $request->test_type);
+        }
+
+        if ($request->has('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->has('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $investigations = $query->paginate(15);
+
+        $stats = [
+            'pending' => Investigation::whereIn('Status', ['Pending', 'Assigned'])->count(),
+            'processing' => Investigation::where('Status', 'Processing')->count(),
+            'assigned_to_me' => Investigation::where('StaffID', $technician->StaffID)
+                                ->whereIn('Status', ['Assigned', 'Processing'])->count(),
+            'high_priority' => Investigation::whereIn('Priority', ['High', 'Critical'])
+                                ->whereIn('Status', ['Pending', 'Assigned', 'Processing'])->count(),
+        ];
+
+        $testTypes = TestType::active()->get();
+
+        return view('lab.investigations', compact('technician', 'investigations', 'stats', 'testTypes'));
+    }
+
 }
