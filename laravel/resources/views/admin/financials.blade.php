@@ -1090,5 +1090,6 @@ function calculateTotal() {
     // You can display this total somewhere or use it for validation
     console.log('Calculated total:', total);
 }
+
 </script>
 @endsection
