@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\DoctorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,8 +44,7 @@ Route::middleware(['auth'])->group(function () {
         // Route::get('/appointments', [PatientController::class, 'appointments'])->name('appointments');
     });
 
-    use App\Http\Controllers\DoctorController;
-    use Illuminate\Support\Facades\Route;
+
 
     // Doctor Routes
     Route::middleware(['auth', 'doctor'])->prefix('doctor')->name('doctor.')->group(function () {
