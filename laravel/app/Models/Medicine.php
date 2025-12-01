@@ -94,6 +94,40 @@ class Medicine extends Model
     {
         return $this->ExpiryDate >= now() && $this->ExpiryDate <= now()->addDays(30);
     }
+// Get stock status
+    public function getStockStatus()
+    {
+        if ($this->isExpired()) {
+            return 'Expired';
+        } elseif ($this->StockQuantity == 0) {
+            return 'Out of Stock';
+        } elseif ($this->isLowStock()) {
+            return 'Low Stock';
+        } else {
+            return 'In Stock';
+        }
+    }
 
+    // Get stock status color
+    public function getStockStatusColor()
+    {
+        switch ($this->getStockStatus()) {
+            case 'Expired':
+                return 'red';
+            case 'Out of Stock':
+                return 'red';
+            case 'Low Stock':
+                return 'yellow';
+            default:
+                return 'green';
+        }
+    }
+
+    // Update stock quantity
+    public function updateStock($quantity)
+    {
+        $this->StockQuantity += $quantity;
+        $this->save();
+    }
 
 }
