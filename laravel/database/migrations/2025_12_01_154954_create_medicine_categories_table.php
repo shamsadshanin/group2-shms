@@ -6,14 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('medicine_categories', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+                    $table->id('CategoryID');
+                    $table->string('CategoryName', 100);
+                    $table->text('Description')->nullable();
+                    $table->boolean('IsActive')->default(true);
+                    $table->timestamps();
+
+                    $table->index('CategoryName');
+                    $table->index('IsActive');
         });
     }
 
