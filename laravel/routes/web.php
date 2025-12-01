@@ -43,11 +43,16 @@ Route::middleware(['auth'])->group(function () {
         // Route::get('/appointments', [PatientController::class, 'appointments'])->name('appointments');
     });
 
-    // == DOCTOR (Fatema Tug Juhora) ==
-    Route::prefix('doctor')->name('doctor.')->group(function () {
-        Route::get('/dashboard', function() {
-            return view('doctor.dashboard');
-        })->name('dashboard');
+    use App\Http\Controllers\DoctorController;
+    use Illuminate\Support\Facades\Route;
+
+    // Doctor Routes
+    Route::middleware(['auth', 'doctor'])->prefix('doctor')->name('doctor.')->group(function () {
+        Route::get('/dashboard', [DoctorController::class, 'dashboard'])->name('dashboard');
+        Route::post('/appointment/{id}/status', [DoctorController::class, 'updateAppointmentStatus'])->name('appointment.status');
+        Route::post('/prescription', [DoctorController::class, 'storePrescription'])->name('prescription.store');
+        Route::get('/patient/{id}/history', [DoctorController::class, 'patientHistory'])->name('patient.history');
+        Route::post('/availability', [DoctorController::class, 'updateAvailability'])->name('availability.update');
     });
 
     // == ADMINISTRATOR (Arti Moni) ==
