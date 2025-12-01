@@ -31,7 +31,32 @@ class DispensingRequest extends FormRequest
         ];
     }
 
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $prescription = Prescription::find($this->PrescriptionID);
+            $medicine = $prescription->medicine;
 
+            if (!$prescription->canBeDispensed()) {
+                $validator->errors()->add(
+                    'PrescriptionID',
+                    'This prescription cannot be dispensed. It may already be completed or medicine is out of stock.'
+                );
+            }
+
+            if ($medicine && $this->QuantityDispensed > $prescription->getRemainingQuantity()) {
+                $validator->errors()->add(
+                    'QuantityDispensed',
+                    "Dispensing quantity cannot exceed remaining prescribed quantity ({$prescription->getRemainingQuantity()})."
+                );
+            }
+
+            if ($medicine && $this->QuantityDispensed > $medicine->StockQuantity) {
+                $validator->errors()->add(
+                    'QuantityDispensed',
+                    "Insufficient stock. Only {$medicine->StockQuantity} units available."
+                );
+            }
         });
     }
 }
