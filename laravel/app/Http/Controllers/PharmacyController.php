@@ -265,4 +265,165 @@ class PharmacyController extends Controller
             ], 404);
         }
     }
+
+// Add these methods to your PharmacyController
+
+public function reports(Request $request)
+{
+    $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+    $dateTo = $request->get('date_to', now()->format('Y-m-d'));
+    $reportType = $request->get('report_type', 'sales');
+
+    // Quick Statistics
+    $quickStats = $this->getQuickStats($dateFrom, $dateTo);
+
+    // Initialize variables for different reports
+    $salesData = [];
+    $topSellingMedicines = [];
+    $detailedSales = [];
+    $categoryStock = [];
+    $expiringMedicines = [];
+    $doctorPrescriptions = [];
+    $performanceMetrics = [];
+    $pharmacistPerformance = [];
+    $chartData = [];
+
+    switch ($reportType) {
+        case 'sales':
+            $salesData = $this->getSalesData($dateFrom, $dateTo, $request->group_by);
+            $topSellingMedicines = $this->getTopSellingMedicines($dateFrom, $dateTo);
+            $detailedSales = $this->getDetailedSales($dateFrom, $dateTo);
+            $chartData['sales'] = $salesData;
+            break;
+
+        case 'inventory':
+            $categoryStock = $this->getCategoryStockReport();
+            $chartData['inventory'] = $this->getInventoryChartData();
+            break;
+
+        case 'expiry':
+            $expiringMedicines = $this->getExpiringMedicines();
+            $chartData['expiry'] = $this->getExpiryChartData();
+            break;
+
+        case 'prescription':
+            $doctorPrescriptions = $this->getDoctorPrescriptionAnalysis($dateFrom, $dateTo);
+            $chartData['prescriptions'] = $this->getPrescriptionChartData($dateFrom, $dateTo, $request->group_by);
+            break;
+
+        case 'performance':
+            $performanceMetrics = $this->getPerformanceMetrics($dateFrom, $dateTo);
+            $pharmacistPerformance = $this->getPharmacistPerformance($dateFrom, $dateTo);
+            break;
+    }
+
+    return view('pharmacy.reports', compact(
+        'quickStats', 'salesData', 'topSellingMedicines', 'detailedSales',
+        'categoryStock', 'expiringMedicines', 'doctorPrescriptions',
+        'performanceMetrics', 'pharmacistPerformance', 'chartData',
+        'dateFrom', 'dateTo', 'reportType'
+    ));
+}
+
+    public function reports(Request $request)
+    {
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateTo = $request->get('date_to', now()->format('Y-m-d'));
+        $reportType = $request->get('report_type', 'sales');
+
+        // Quick Statistics
+        $quickStats = $this->getQuickStats($dateFrom, $dateTo);
+
+        // Initialize variables for different reports
+        $salesData = [];
+        $topSellingMedicines = [];
+        $detailedSales = [];
+        $categoryStock = [];
+        $expiringMedicines = [];
+        $doctorPrescriptions = [];
+        $performanceMetrics = [];
+        $pharmacistPerformance = [];
+        $chartData = [];
+
+        switch ($reportType) {
+            case 'sales':
+                $salesData = $this->getSalesData($dateFrom, $dateTo, $request->group_by);
+                $topSellingMedicines = $this->getTopSellingMedicines($dateFrom, $dateTo);
+                $detailedSales = $this->getDetailedSales($dateFrom, $dateTo);
+                $chartData['sales'] = $salesData;
+                break;
+
+            case 'inventory':
+                $categoryStock = $this->getCategoryStockReport();
+                $chartData['inventory'] = $this->getInventoryChartData();
+                break;
+
+            case 'expiry':
+                $expiringMedicines = $this->getExpiringMedicines();
+                $chartData['expiry'] = $this->getExpiryChartData();
+                break;
+
+            case 'prescription':
+                $doctorPrescriptions = $this->getDoctorPrescriptionAnalysis($dateFrom, $dateTo);
+                $chartData['prescriptions'] = $this->getPrescriptionChartData($dateFrom, $dateTo, $request->group_by);
+                break;
+
+            case 'performance':
+                $performanceMetrics = $this->getPerformanceMetrics($dateFrom, $dateTo);
+                $pharmacistPerformance = $this->getPharmacistPerformance($dateFrom, $dateTo);
+                break;
+        }
+
+        return view('pharmacy.reports', compact(
+            'quickStats', 'salesData', 'topSellingMedicines', 'detailedSales',
+            'categoryStock', 'expiringMedicines', 'doctorPrescriptions',
+            'performanceMetrics', 'pharmacistPerformance', 'chartData',
+            'dateFrom', 'dateTo', 'reportType'
+        ));
+    }
+
+    private function getQuickStats($dateFrom, $dateTo)
+    {
+        // Total sales in period
+        $totalSales = Dispensing::whereBetween('created_at', [$dateFrom, $dateTo])
+                      ->sum('TotalAmount');
+
+        // Total prescriptions dispensed
+        $totalPrescriptions = Prescription::whereBetween('DispensedAt', [$dateFrom, $dateTo])
+                            ->where('Status', 'Dispensed')
+                            ->count();
+
+        // Low stock items
+        $lowStockItems = Medicine::lowStock()->count();
+
+        // Expiring soon (within 30 days)
+        $expiringSoon = Medicine::expiringSoon()->count();
+
+        // Sales trend compared to previous period
+        $previousPeriodSales = Dispensing::whereBetween('created_at',
+            [now()->subDays(30)->format('Y-m-d'), now()->format('Y-m-d')])
+            ->sum('TotalAmount');
+
+        $salesTrend = $previousPeriodSales > 0 ?
+                      (($totalSales - $previousPeriodSales) / $previousPeriodSales) * 100 : 0;
+
+        // Prescription trend
+        $previousPrescriptions = Prescription::whereBetween('DispensedAt',
+            [now()->subDays(30)->format('Y-m-d'), now()->format('Y-m-d')])
+            ->where('Status', 'Dispensed')
+            ->count();
+
+        $prescriptionTrend = $previousPrescriptions > 0 ?
+                            (($totalPrescriptions - $previousPrescriptions) / $previousPrescriptions) * 100 : 0;
+
+        return [
+            'total_sales' => $totalSales,
+            'total_prescriptions' => $totalPrescriptions,
+            'low_stock_items' => $lowStockItems,
+            'expiring_soon' => $expiringSoon,
+            'sales_trend' => round($salesTrend, 2),
+            'prescription_trend' => round($prescriptionTrend, 2),
+            'low_stock_change' => 0 // You can calculate this based on previous period
+        ];
+    }
 }
