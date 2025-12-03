@@ -43,6 +43,7 @@ class AuditLog extends Model
     // Log an action
     public static function logAction($user, $action, $description, $oldValues = null, $newValues = null)
     {
+
         return self::create([
             'user_id' => $user->id,
             'action' => $action,
