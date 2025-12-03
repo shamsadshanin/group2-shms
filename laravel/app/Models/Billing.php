@@ -76,7 +76,7 @@ class Billing extends Model
         return 0;
     }
 
-    // Generate next invoice number
+
     public static function generateInvoiceNumber()
     {
         $lastInvoice = self::latest('InvoiceID')->first();
