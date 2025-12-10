@@ -45,7 +45,7 @@ class PatientController extends Controller
         ]);
 
         $patient = $this->getPatient();
-        
+
         Appointment::create([
             'cAppointmentID' => 'A-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
             'cPatientID' => $patient->cPatientID,
@@ -62,7 +62,7 @@ class PatientController extends Controller
     {
         $patient = $this->getPatient();
         $medicalHistory = MedicalRecord::where('cPatientID', $patient->cPatientID)
-            ->orderBy('dDate', 'desc')
+            ->orderBy('dRecordDate', 'desc') // Updated to match your database column
             ->get();
 
         return view('patient.medical-history', compact('medicalHistory'));
@@ -72,7 +72,7 @@ class PatientController extends Controller
     {
         $patient = $this->getPatient();
         $prescriptions = Prescription::where('cPatientID', $patient->cPatientID)
-            ->orderBy('dDate', 'desc')
+            ->orderBy('dPrescriptionDate', 'desc')
             ->get();
 
         return view('patient.prescriptions', compact('prescriptions'));
@@ -113,7 +113,7 @@ class PatientController extends Controller
         ]);
 
         $diagnosis = $this->mockAIPrediction($request->symptoms);
-        
+
         return view('patient.symptom-checker', compact('diagnosis'));
     }
 
