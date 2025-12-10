@@ -19,7 +19,7 @@ class PharmacyController extends Controller
     public function dashboard()
     {
         $prescriptions = Prescription::where('cStatus', 'Active')
-            ->orderBy('dIssueDate', 'desc')
+            ->orderBy('dPrescriptionDate', 'desc')
             ->take(20)
             ->get();
 
@@ -28,7 +28,7 @@ class PharmacyController extends Controller
 
     public function prescriptions()
     {
-        $prescriptions = Prescription::orderBy('dIssueDate', 'desc')
+        $prescriptions = Prescription::orderBy('dPrescriptionDate', 'desc')
             ->get();
 
         return view('pharmacy.prescriptions', compact('prescriptions'));
