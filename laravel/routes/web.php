@@ -2,142 +2,145 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PatientController;
 use App\Http\Controllers\DoctorController;
-use App\Http\Controllers\LabController;
-use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReceptionController;
+use App\Http\Controllers\LabTechnicianController;
+use App\Http\Controllers\PharmacyController;
+use App\Http\Controllers\LandingPageController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
+// Landing page route
+Route::get('/', [LandingPageController::class, 'index'])->name('landing');
 
-// Default homepage → login page
-Route::get('/', function () {
-    return view('auth.login');
-});
+// Authentication routes
+Auth::routes(['verify' => true]);
 
-// Laravel default auth (login, register, logout, etc.)
-Auth::routes();
+// Custom Authentication routes
+Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('login', [AuthController::class, 'login'])->name('login.submit');
+Route::get('register', [AuthController::class, 'showRegistrationForm'])->name('register');
+Route::post('register', [AuthController::class, 'register'])->name('register.submit');
+Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
-// Home after login
+// Dashboard dispatcher route
+Route::get('/dashboard', [HomeController::class, 'redirectToDashboard'])->name('dashboard')->middleware('auth');
+
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-
-/*
-|--------------------------------------------------------------------------
-| AUTHENTICATED ROUTES
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth'])->group(function () {
-
-    /*
-    |--------------------------------------------------------------------------
-    | PATIENT ROUTES
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('patient')->name('patient.')->group(function () {
-
-        Route::get('/dashboard', function () {
-            return view('patient.dashboard');
-        })->name('dashboard');
-
-        // Add more patient routes later...
-        // Route::get('/appointments', ... );
-    });
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DOCTOR ROUTES
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware(['doctor'])
-        ->prefix('doctor')
-        ->name('doctor.')
-        ->group(function () {
-
-        Route::get('/dashboard', [DoctorController::class, 'dashboard'])->name('dashboard');
-        Route::post('/appointment/{id}/status', [DoctorController::class, 'updateAppointmentStatus'])->name('appointment.status');
-        Route::post('/prescription', [DoctorController::class, 'storePrescription'])->name('prescription.store');
-        Route::get('/patient/{id}/history', [DoctorController::class, 'patientHistory'])->name('patient.history');
-        Route::post('/availability', [DoctorController::class, 'updateAvailability'])->name('availability.update');
-    });
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN ROUTES (Controller)
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware(['admin'])
-        ->prefix('admin')
-        ->name('admin.')
-        ->group(function () {
-
-        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-        Route::get('/users', [AdminController::class, 'users'])->name('users');
-        Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
-        Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
-        Route::get('/financials', [AdminController::class, 'financials'])->name('financials');
-        Route::post('/reports/generate', [AdminController::class, 'generateReport'])->name('reports.generate');
-    });
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | PHARMACY ROUTES
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware(['pharmacy'])
-        ->prefix('pharmacy')
-        ->name('pharmacy.')
-        ->group(function () {
-
-        Route::get('/dashboard', [PharmacyController::class, 'dashboard'])->name('dashboard');
-        Route::post('/dispense', [PharmacyController::class, 'dispense'])->name('dispense');
-        Route::get('/inventory', [PharmacyController::class, 'inventory'])->name('inventory');
-        Route::post('/medicine', [PharmacyController::class, 'storeMedicine'])->name('medicine.store');
-        Route::put('/medicine/{medicine}', [PharmacyController::class, 'updateMedicine'])->name('medicine.update');
-        Route::post('/medicine/{medicine}/stock', [PharmacyController::class, 'updateStock'])->name('medicine.stock.update');
-        Route::get('/history', [PharmacyController::class, 'dispensingHistory'])->name('history');
-        Route::get('/prescription/{id}/details', [PharmacyController::class, 'getPrescriptionDetails'])->name('prescription.details');
-    });
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | LAB TECHNICIAN ROUTES
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware(['auth', 'lab.technician'])->prefix('lab')->name('lab.')->group(function () {
-        Route::get('/dashboard', [LabController::class, 'dashboard'])->name('dashboard');
-        Route::get('/investigations', [LabController::class, 'investigations'])->name('investigations');
-        Route::post('/investigation/{id}', [LabController::class, 'updateInvestigation'])->name('investigation.update');
-        Route::post('/investigation/{id}/assign', [LabController::class, 'assignToMe'])->name('investigation.assign');
-        Route::get('/history', [LabController::class, 'investigationHistory'])->name('history');
-        Route::get('/report/{id}/download', [LabController::class, 'downloadReport'])->name('report.download');
-    });
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | RECEPTIONIST ROUTES
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('reception')->name('reception.')->group(function () {
-
-        Route::get('/dashboard', function () {
-            return view('reception.dashboard');
-        })->name('dashboard');
-    });
-
+// Patient routes
+Route::middleware(['auth', 'role:patient'])->prefix('patient')->name('patient.')->group(function () {
+    Route::get('dashboard', [PatientController::class, 'dashboard'])->name('dashboard');
+    Route::get('book-appointment', [PatientController::class, 'bookAppointment'])->name('book-appointment');
+    Route::post('store-appointment', [PatientController::class, 'storeAppointment'])->name('store-appointment');
+    Route::get('medical-history', [PatientController::class, 'medicalHistory'])->name('medical-history');
+    Route::get('prescriptions', [PatientController::class, 'prescriptions'])->name('prescriptions');
+    Route::get('billing', [PatientController::class, 'billing'])->name('billing');
+    Route::post('pay-bill/{cBillingID}', [PatientController::class, 'payBill'])->name('pay-bill');
+    Route::get('symptom-checker', [PatientController::class, 'symptomChecker'])->name('symptom-checker');
+    Route::post('check-symptoms', [PatientController::class, 'checkSymptoms'])->name('check-symptoms');
 });
+
+// Doctor routes
+Route::middleware(['auth', 'role:doctor'])->prefix('doctor')->name('doctor.')->group(function () {
+    Route::get('dashboard', [DoctorController::class, 'dashboard'])->name('dashboard');
+    Route::get('appointments', [DoctorController::class, 'appointments'])->name('appointments');
+    Route::get('appointments/create', [DoctorController::class, 'createAppointment'])->name('appointments.create');
+    Route::post('appointments', [DoctorController::class, 'storeAppointment'])->name('appointments.store');
+    Route::get('prescriptions', [DoctorController::class, 'prescriptions'])->name('prescriptions');
+    Route::get('prescriptions/create', [DoctorController::class, 'createPrescription'])->name('prescriptions.create');
+    Route::post('prescriptions', [DoctorController::class, 'storePrescription'])->name('prescriptions.store');
+    Route::get('patients/{patient}/history', [PatientController::class, 'patientHistory'])->name('patients.history');
+});
+
+// Admin routes
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    // Doctor management
+    Route::get('doctors', [AdminController::class, 'doctors'])->name('doctors.index');
+    Route::get('doctors/create', [AdminController::class, 'createDoctor'])->name('doctors.create');
+    Route::post('doctors', [AdminController::class, 'storeDoctor'])->name('doctors.store');
+    Route::get('doctors/{id}/edit', [AdminController::class, 'editDoctor'])->name('doctors.edit');
+    Route::put('doctors/{id}', [AdminController::class, 'updateDoctor'])->name('doctors.update');
+    Route::delete('doctors/{id}', [AdminController::class, 'destroyDoctor'])->name('doctors.destroy');
+
+    // Patient management
+    Route::get('patients', [AdminController::class, 'patients'])->name('patients.index');
+    Route::get('patients/create', [AdminController::class, 'createPatient'])->name('patients.create');
+    Route::post('patients', [AdminController::class, 'storePatient'])->name('patients.store');
+    Route::get('patients/{id}/edit', [AdminController::class, 'editPatient'])->name('patients.edit');
+    Route::put('patients/{id}', [AdminController::class, 'updatePatient'])->name('patients.update');
+    Route::delete('patients/{id}', [AdminController::class, 'destroyPatient'])->name('patients.destroy');
+
+    // Appointment management
+    Route::get('appointments', [AdminController::class, 'appointments'])->name('appointments.index');
+    Route::get('appointments/create', [AdminController::class, 'createAppointment'])->name('appointments.create');
+    Route::post('appointments', [AdminController::class, 'storeAppointment'])->name('appointments.store');
+    Route::get('appointments/{id}/edit', [AdminController::class, 'editAppointment'])->name('appointments.edit');
+    Route::put('appointments/{id}', [AdminController::class, 'updateAppointment'])->name('appointments.update');
+    Route::delete('appointments/{id}', [AdminController::class, 'destroyAppointment'])->name('appointments.destroy');
+
+    // Billing management
+    Route::get('billing', [AdminController::class, 'billing'])->name('billing.index');
+    Route::get('billing/create', [AdminController::class, 'createBilling'])->name('billing.create');
+    Route::post('billing', [AdminController::class, 'storeBilling'])->name('billing.store');
+    Route::get('billing/{billing}/edit', [AdminController::class, 'editBilling'])->name('billing.edit');
+    Route::put('billing/{billing}', [AdminController::class, 'updateBilling'])->name('billing.update');
+    Route::delete('billing/{billing}', [AdminController::class, 'destroyBilling'])->name('billing.destroy');
+
+    // User management
+    Route::get('users', [AdminController::class, 'users'])->name('users.index');
+    Route::get('users/create', [AdminController::class, 'createUser'])->name('users.create');
+    Route::post('users', [AdminController::class, 'storeUser'])->name('users.store');
+    Route::get('users/{id}/edit', [AdminController::class, 'editUser'])->name('users.edit');
+    Route::put('users/{id}', [AdminController::class, 'updateUser'])->name('users.update');
+    Route::delete('users/{id}', [AdminController::class, 'destroyUser'])->name('users.destroy');
+
+    Route::get('analytics', [AdminController::class, 'analytics'])->name('analytics');
+    Route::get('reports', [AdminController::class, 'reports'])->name('reports');
+    Route::post('reports', [AdminController::class, 'reports'])->name('reports.post');
+});
+
+// Reception routes
+Route::middleware(['auth', 'role:reception'])->prefix('reception')->name('reception.')->group(function () {
+    Route::get('dashboard', [ReceptionController::class, 'dashboard'])->name('dashboard');
+    Route::patch('appointments/{appointment}/check-in', [ReceptionController::class, 'checkIn'])->name('appointments.check-in');
+    Route::get('appointments', [ReceptionController::class, 'appointments'])->name('appointments');
+    Route::get('patients', [ReceptionController::class, 'patients'])->name('patients');
+    Route::get('patients/create', [ReceptionController::class, 'createPatient'])->name('patients.create');
+    Route::post('patients', [ReceptionController::class, 'storePatient'])->name('patients.store');
+});
+
+// Lab Technician routes
+Route::middleware(['auth', 'role:lab'])->prefix('lab')->name('lab.')->group(function () {
+    Route::get('dashboard', [LabTechnicianController::class, 'dashboard'])->name('dashboard');
+    Route::get('tests', [LabTechnicianController::class, 'tests'])->name('tests');
+    Route::get('tests/create', [LabTechnicianController::class, 'create'])->name('tests.create');
+    Route::post('tests', [LabTechnicianController::class, 'store'])->name('tests.store');
+    Route::get('tests/{cLabTestID}', [LabTechnicianController::class, 'show'])->name('tests.show');
+});
+
+// Pharmacy routes
+Route::middleware(['auth', 'role:pharmacy'])->prefix('pharmacy')->name('pharmacy.')->group(function () {
+    Route::get('dashboard', [PharmacyController::class, 'dashboard'])->name('dashboard');
+    Route::get('prescriptions', [PharmacyController::class, 'prescriptions'])->name('prescriptions');
+    Route::get('prescriptions/create', [PharmacyController::class, 'createPrescription'])->name('prescriptions.create');
+    Route::post('prescriptions', [PharmacyController::class, 'storePrescription'])->name('prescriptions.store');
+    Route::get('prescriptions/{prescription}', [PharmacyController::class, 'prescriptionDetail'])->name('prescription-detail');
+    Route::patch('prescriptions/{prescription}/dispensed', [PharmacyController::class, 'markAsDispensed'])->name('mark-as-dispensed');
+    Route::patch('prescriptions/{prescription}/collected', [PharmacyController::class, 'markAsCollected'])->name('mark-as-collected');
+});
+
+
+// Profile routes
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';

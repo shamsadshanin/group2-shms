@@ -2,69 +2,44 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Doctor;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 
 class DoctorSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
     public function run()
     {
-        $doctors = [
-            [
-                'name' => 'Dr. John Smith',
-                'email' => 'john.smith@hospital.com',
-                'specialization' => 'Cardiology',
-                'contact' => '+1234567890',
-                'qualifications' => 'MD, Board Certified Cardiologist',
-                'experience' => 15,
-            ],
-            [
-                'name' => 'Dr. Sarah Johnson',
-                'email' => 'sarah.johnson@hospital.com',
-                'specialization' => 'Neurology',
-                'contact' => '+1234567891',
-                'qualifications' => 'MD, PhD Neurology',
-                'experience' => 12,
-            ],
-            [
-                'name' => 'Dr. Michael Brown',
-                'email' => 'michael.brown@hospital.com',
-                'specialization' => 'Pediatrics',
-                'contact' => '+1234567892',
-                'qualifications' => 'MD, Pediatric Specialist',
-                'experience' => 8,
-            ],
-        ];
+        Doctor::create([
+            'cDoctorID' => 'D-001',
+            'cName' => 'Dr. Ahmed Khan',
+            'cSpecialization' => 'Cardiology',
+            'cEmail' => 'ahmed@hospital.com',
+            'cContactNumber' => '01711000000',
+            'cAvailability' => 'Mon-Wed 10am-2pm',
+        ]);
 
-        foreach ($doctors as $doctorData) {
-            // Create user account
-            $user = User::create([
-                'name' => $doctorData['name'],
-                'email' => $doctorData['email'],
-                'password' => Hash::make('password123'),
-                'role' => 'doctor',
-            ]);
+        Doctor::create([
+            'cDoctorID' => 'D-002',
+            'cName' => 'Dr. Sarah Rahman',
+            'cSpecialization' => 'Neurology',
+            'cEmail' => 'sarah@hospital.com',
+            'cContactNumber' => '01711000001',
+            'cAvailability' => 'Thu-Sat 4pm-8pm',
+        ]);
 
-            // Create doctor profile
-            Doctor::create([
-                'user_id' => $user->id,
-                'Name' => $doctorData['name'],
-                'Specialization' => $doctorData['specialization'],
-                'Email' => $doctorData['email'],
-                'ContactNumber' => $doctorData['contact'],
-                'Qualifications' => $doctorData['qualifications'],
-                'ExperienceYears' => $doctorData['experience'],
-                'Availability' => json_encode([
-                    'monday' => ['09:00-17:00'],
-                    'tuesday' => ['09:00-17:00'],
-                    'wednesday' => ['09:00-17:00'],
-                    'thursday' => ['09:00-17:00'],
-                    'friday' => ['09:00-17:00'],
-                ]),
-                'IsActive' => true,
-            ]);
-        }
+        Doctor::create([
+            'cDoctorID' => 'D-003',
+            'cName' => 'Dr. Rafiqul Islam',
+            'cSpecialization' => 'General Medicine',
+            'cEmail' => 'rafiq@hospital.com',
+            'cContactNumber' => '01711000002',
+            'cAvailability' => 'Sun-Thu 9am-5pm',
+        ]);
     }
 }

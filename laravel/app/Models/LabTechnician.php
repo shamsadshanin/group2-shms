@@ -4,55 +4,28 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LabTechnician extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'StaffID';
-    public $incrementing = true;
+    protected $table = 'tbllabtechnician';
+    protected $primaryKey = 'cLabTechnicianID';
+    public $incrementing = false;
+    protected $keyType = 'string';
+    public $timestamps = false;
 
     protected $fillable = [
-        'user_id', 'Name', 'Department', 'Qualification',
-        'LicenseNumber', 'ContactNumber', 'Email', 'IsActive'
+        'cLabTechnicianID',
+        'cName',
+        'cEmail',
+        'cContactNumber',
+        'cSpecialization'
     ];
 
-    protected $casts = [
-        'IsActive' => 'boolean',
-    ];
-
-    // Relationship with User
-    public function user()
+    public function labTests(): HasMany
     {
-        return $this->belongsTo(User::class);
-    }
-
-    // Relationship with Investigations
-    public function investigations()
-    {
-        return $this->hasMany(Investigation::class, 'StaffID');
-    }
-
-    // Get pending investigations count
-    public function getPendingInvestigationsCount()
-    {
-        return $this->investigations()
-            ->where('Status', 'Pending')
-            ->orWhere('Status', 'Assigned')
-            ->count();
-    }
-
-    // Get completed investigations count
-    public function getCompletedInvestigationsCount()
-    {
-        return $this->investigations()
-            ->where('Status', 'Completed')
-            ->count();
-    }
-
-    // Check if technician is available (less than 10 pending tests)
-    public function isAvailable()
-    {
-        return $this->getPendingInvestigationsCount() < 10;
+        return $this->hasMany(LabTest::class, 'cLabTechnicianID', 'cLabTechnicianID');
     }
 }

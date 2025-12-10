@@ -1,120 +1,30 @@
-@extends('layouts.admin')
-@section('title', 'Patient Dashboard')
+@extends('layouts.app')
 
 @section('content')
-<!-- Small boxes (Stat boxes) -->
-<div class="row">
-    <div class="col-lg-4 col-6">
-        <!-- small box -->
-        <div class="small-box bg-info">
-            <div class="inner">
-                <h3>2</h3>
-                <p>Upcoming Appointments</p>
-            </div>
-            <div class="icon">
-                <i class="fas fa-calendar-check"></i>
-            </div>
-            <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-        </div>
-    </div>
-    <div class="col-lg-4 col-6">
-        <!-- small box -->
-        <div class="small-box bg-success">
-            <div class="inner">
-                <h3>5</h3>
-                <p>Medical Records</p>
-            </div>
-            <div class="icon">
-                <i class="fas fa-file-medical"></i>
-            </div>
-            <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-        </div>
-    </div>
-    <div class="col-lg-4 col-6">
-        <!-- small box -->
-        <div class="small-box bg-warning">
-            <div class="inner">
-                <h3>1</h3>
-                <p>Unpaid Bills</p>
-            </div>
-            <div class="icon">
-                <i class="fas fa-receipt"></i>
-            </div>
-            <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-        </div>
-    </div>
-</div>
-<!-- /.row -->
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-4">Patient Dashboard</h1>
 
-<!-- Main row -->
-<div class="row">
-    <!-- Left col -->
-    <section class="col-lg-7 connectedSortable">
-        <!-- Feature 2: Book Appointment -->
-        <div class="card card-primary">
-            <div class="card-header">
-                <h3 class="card-title">Book a New Appointment</h3>
-            </div>
-            <form>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>Select Department</label>
-                        <select class="form-control">
-                            <option>Cardiology</option>
-                            <option>Dermatology</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Select Doctor</label>
-                        <select class="form-control">
-                            <option>Dr. Fatema Tug Juhora</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Select Date</label>
-                        <input type="date" class="form-control">
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-primary">Book Appointment</button>
-                </div>
-            </form>
-        </div>
-        
-        <!-- Feature 5: AI Symptom Checker -->
-        <div class="card card-danger">
-            <div class="card-header">
-                <h3 class="card-title">AI Symptom Checker</h3>
-            </div>
-            <form>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>Enter your symptoms (comma separated)</label>
-                        <textarea class="form-control" rows="3" placeholder="e.g., fever, cough, headache..."></textarea>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-danger">Get Prediction</button>
-                </div>
-            </form>
-        </div>
-    </section>
-    
-    <!-- right col -->
-    <section class="col-lg-5 connectedSortable">
-        <!-- Feature 6: Smart Recommendations -->
-        <div class="card bg-gradient-success">
-            <div class="card-header border-0">
-                <h3 class="card-title"><i class="fas fa-heartbeat"></i> Smart Health Recommendations</h3>
-            </div>
-            <div class="card-body">
-                <p>Based on your history, we recommend:</p>
-                <ul>
-                    <li>Book a follow-up consultation.</li>
-                    <li>Complete your annual blood test.</li>
-                </ul>
-            </div>
-        </div>
-    </section>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <a href="{{ route('patient.book-appointment') }}" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+            <h2 class="text-lg font-semibold mb-2">Book Appointment</h2>
+            <p class="text-gray-600">Schedule a new appointment with a doctor.</p>
+        </a>
+        <a href="{{ route('patient.medical-history') }}" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+            <h2 class="text-lg font-semibold mb-2">Medical History</h2>
+            <p class="text-gray-600">View your past medical records and diagnoses.</p>
+        </a>
+        <a href="{{ route('patient.prescriptions') }}" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+            <h2 class="text-lg font-semibold mb-2">Prescriptions</h2>
+            <p class="text-gray-600">Access your current and past prescriptions.</p>
+        </a>
+        <a href="{{ route('patient.billing') }}" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+            <h2 class="text-lg font-semibold mb-2">Billing</h2>
+            <p class="text-gray-600">View your invoices and payment history.</p>
+        </a>
+        <a href="{{ route('patient.symptom-checker') }}" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+            <h2 class="text-lg font-semibold mb-2">Symptom Checker</h2>
+            <p class="text-gray-600">Check your symptoms for a preliminary diagnosis.</p>
+        </a>
+    </div>
 </div>
-@endSection
+@endsection

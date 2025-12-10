@@ -3,322 +3,506 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Appointment;
-use App\Models\Billing;
-use App\Models\AuditLog;
 use App\Models\Patient;
 use App\Models\Doctor;
+use App\Models\Appointment;
+use App\Models\Billing;
 use App\Models\LabTechnician;
-use App\Http\Requests\UserUpdateRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
 class AdminController extends Controller
 {
-    public function __construct()
+    public function dashboard(Request $request)
     {
-        $this->middleware('auth');
-        $this->middleware('admin'); // Custom middleware to ensure user is an admin
-    }
+        // Growth percentages
+        $patientGrowth = $this->calculateGrowth(User::class, null, 'patient');
+        $doctorGrowth = $this->calculateGrowth(User::class, null, 'doctor');
+        $revenueGrowth = $this->calculateGrowth(Billing::class, 'fAmount', null, 'dBillingDate');
+        $appointmentGrowth = $this->calculateGrowth(Appointment::class, null, null, 'dAppointmentDateTime');
 
-    public function dashboard()
-    {
-        // 1. Key Metrics
-        $totalPatients = Patient::count();
-        $totalDoctors = Doctor::where('IsActive', true)->count();
-        $totalLabTechnicians = LabTechnician::where('IsActive', true)->count();
+        $totalPatients = User::where('role', 'patient')->count();
+        $activeDoctors = User::where('role', 'doctor')->count();
+        $totalRevenue = Billing::where('cStatus', 'Paid')->sum('fAmount');
+        $todayAppointments = Appointment::whereDate('dAppointmentDateTime', Carbon::today())->count();
+        $pendingAppointments = Appointment::where('cStatus', 'Scheduled')->count();
         $totalAppointments = Appointment::count();
 
-        // 2. Revenue Metrics
-        $totalRevenue = Billing::paid()->sum('FinalAmount');
-        $monthlyRevenue = Billing::paid()
-                        ->whereYear('IssueDate', date('Y'))
-                        ->whereMonth('IssueDate', date('m'))
-                        ->sum('FinalAmount');
-        $pendingPayments = Billing::pending()->sum('FinalAmount');
-        $overduePayments = Billing::overdue()->sum('FinalAmount');
+        $departmentStats = Doctor::select('cSpecialization as name')
+            ->withCount('appointments')
+            ->get()
+            ->map(function ($doctor) {
+                $doctor->performance = rand(70, 95); // Mock performance data for now
+                return $doctor;
+            });
 
-        // 3. Data for Charts
-        // Monthly appointments chart
-        $appointmentsChart = Appointment::select(
-                DB::raw("COUNT(*) as count"),
-                DB::raw("MONTHNAME(Date) as month_name")
-            )
-            ->whereYear('Date', date('Y'))
-            ->groupBy(DB::raw("MONTHNAME(Date)"))
-            ->orderBy(DB::raw("MIN(Date)"))
-            ->pluck('count', 'month_name');
+        $recentActivities = Appointment::with(['patient', 'doctor'])
+            ->latest('dAppointmentDateTime')
+            ->take(5)
+            ->get()
+            ->map(function ($appointment) {
+                return (object)[
+                    'icon' => 'calendar-check',
+                    'description' => 'Appointment for ' . optional($appointment->patient)->cName . ' with Dr. ' . optional($appointment->doctor)->cName,
+                    'time' => $appointment->dAppointmentDateTime->diffForHumans(),
+                ];
+            });
 
-        // Revenue chart (last 6 months)
-        $revenueChart = Billing::paid()
-            ->select(
-                DB::raw("SUM(FinalAmount) as revenue"),
-                DB::raw("DATE_FORMAT(IssueDate, '%Y-%m') as month_year")
-            )
-            ->where('IssueDate', '>=', now()->subMonths(6))
-            ->groupBy('month_year')
-            ->orderBy('month_year')
-            ->pluck('revenue', 'month_year');
+        // Data for Revenue Chart
+        $revenueData = Billing::selectRaw('DATE(dBillingDate) as date, SUM(fAmount) as total')
+            ->where('dBillingDate', ' > ', Carbon::now()->subDays(7))
+            ->groupBy('date')
+            ->orderBy('date', 'ASC')
+            ->get();
 
-        // User registration chart (last 12 months)
-        $userRegistrations = User::select(
-                DB::raw("COUNT(*) as count"),
-                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month_year")
-            )
-            ->where('created_at', '>=', now()->subMonths(12))
-            ->groupBy('month_year')
-            ->orderBy('month_year')
-            ->pluck('count', 'month_year');
+        $revenueChartData = [
+            'labels' => $revenueData->pluck('date')->map(function ($date) {
+                return Carbon::parse($date)->format('M d');
+            }),
+            'data' => $revenueData->pluck('total'),
+        ];
 
-        // 4. Recent Activity
-        $recentUsers = User::with(['patient', 'doctor', 'labTechnician'])
-                      ->latest()
-                      ->take(8)
-                      ->get();
+        // Data for Patient Demographics Chart
+        $demographicsData = Patient::select('cGender')
+            ->selectRaw('count(*) as count')
+            ->groupBy('cGender')
+            ->get();
 
-        $recentActivity = AuditLog::with('user')
-                          ->latest()
-                          ->take(10)
-                          ->get();
-
-        // 5. System Alerts
-        $systemAlerts = [
-            'overdue_bills' => Billing::overdue()->count(),
-            'pending_appointments' => Appointment::where('Status', 'Pending')->count(),
-            'inactive_users' => User::where('is_active', false)->count(),
+        $demographicsChartData = [
+            'labels' => $demographicsData->pluck('cGender'),
+            'data' => $demographicsData->pluck('count'),
         ];
 
         return view('admin.dashboard', compact(
-            'totalPatients', 'totalDoctors', 'totalLabTechnicians', 'totalAppointments',
-            'totalRevenue', 'monthlyRevenue', 'pendingPayments', 'overduePayments',
-            'appointmentsChart', 'revenueChart', 'userRegistrations',
-            'recentUsers', 'recentActivity', 'systemAlerts'
+            'totalPatients',
+            'patientGrowth',
+            'activeDoctors',
+            'doctorGrowth',
+            'totalRevenue',
+            'revenueGrowth',
+            'todayAppointments',
+            'pendingAppointments',
+            'departmentStats',
+            'recentActivities',
+            'totalAppointments',
+            'appointmentGrowth',
+            'revenueChartData',
+            'demographicsChartData'
         ));
     }
 
-    public function users(Request $request)
+    private function calculateGrowth($model, $field = null, $role = null, $dateColumn = 'created_at')
     {
-        $query = User::with(['patient', 'doctor', 'labTechnician']);
+        $query = $model::query();
 
-        // Apply filters
-        if ($request->has('search')) {
-            $search = $request->get('search');
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
+        if ($role) {
+            $query->where('role', $role);
         }
 
-        if ($request->has('role') && $request->role !== 'all') {
-            $query->where('role', $request->role);
+        $now = Carbon::now();
+        $currentMonthStart = $now->copy()->startOfMonth();
+        $previousMonthStart = $now->copy()->subMonthNoOverflow()->startOfMonth();
+        $previousMonthEnd = $previousMonthStart->copy()->endOfMonth();
+
+        $currentMonthQuery = (clone $query)->whereBetween($dateColumn, [$currentMonthStart, $now]);
+        $previousMonthQuery = (clone $query)->whereBetween($dateColumn, [$previousMonthStart, $previousMonthEnd]);
+
+        $currentMonthValue = $field ? $currentMonthQuery->sum($field) : $currentMonthQuery->count();
+        $previousMonthValue = $field ? $previousMonthQuery->sum($field) : $previousMonthQuery->count();
+
+        if ($previousMonthValue == 0) {
+            return $currentMonthValue > 0 ? 100.0 : 0.0;
         }
 
-        if ($request->has('status') && $request->status !== 'all') {
-            $query->where('is_active', $request->status === 'active');
-        }
+        $growth = (($currentMonthValue - $previousMonthValue) / $previousMonthValue) * 100;
 
-        $users = $query->latest()->paginate(20);
-
-        $userStats = [
-            'total' => User::count(),
-            'admins' => User::where('role', 'admin')->count(),
-            'doctors' => User::where('role', 'doctor')->count(),
-            'patients' => User::where('role', 'patient')->count(),
-            'lab_technicians' => User::where('role', 'lab_technician')->count(),
-        ];
-
-        return view('admin.users', compact('users', 'userStats'));
+        return round($growth, 2);
+    }
+    
+    // Doctor Management
+    public function doctors()
+    {
+        $doctors = Doctor::all();
+        return view('admin.doctors.index', compact('doctors'));
     }
 
-    public function updateUser(UserUpdateRequest $request, $id)
+    public function createDoctor()
     {
-        try {
-            $user = User::findOrFail($id);
+        return view('admin.doctors.create');
+    }
 
-            $oldValues = $user->toArray();
-            $user->update($request->validated());
-            $newValues = $user->toArray();
+    public function storeDoctor(Request $request)
+    {
+        $request->validate([
+            'cDoctorID' => 'required|string|max:10|unique:tbldoctor,cDoctorID',
+            'cName' => 'required|string|max:50',
+            'cSpecialization' => 'required|string|max:50',
+            'cEmail' => 'required|email|max:50|unique:tbldoctor,cEmail',
+            'cContactNumber' => 'required|string|max:15',
+            'cAvailability' => 'required|string|max:100',
+        ]);
 
-            // Log the user update
-            AuditLog::logAction(
-                auth()->user(),
-                'user.updated',
-                "Updated user: {$user->name}",
-                $oldValues,
-                $newValues
-            );
+        Doctor::create($request->all());
 
-            return redirect()->route('admin.users')
-                           ->with('success', 'User updated successfully.');
+        return redirect()->route('admin.doctors.index')->with('success', 'Doctor created successfully.');
+    }
 
-        } catch (\Exception $e) {
-            \Log::error('User update failed: ' . $e->getMessage());
+    public function editDoctor($id)
+    {
+        $doctor = Doctor::findOrFail($id);
+        return view('admin.doctors.edit', compact('doctor'));
+    }
 
-            return redirect()->back()
-                           ->with('error', 'Failed to update user. Please try again.')
-                           ->withInput();
+    public function updateDoctor(Request $request, $id)
+    {
+        $request->validate([
+            'cName' => 'required|string|max:50',
+            'cSpecialization' => 'required|string|max:50',
+            'cEmail' => 'required|email|max:50|unique:tbldoctor,cEmail,' . $id . ',cDoctorID',
+            'cContactNumber' => 'required|string|max:15',
+            'cAvailability' => 'required|string|max:100',
+        ]);
+
+        $doctor = Doctor::findOrFail($id);
+        $doctor->update($request->all());
+
+        return redirect()->route('admin.doctors.index')->with('success', 'Doctor updated successfully.');
+    }
+
+    public function destroyDoctor($id)
+    {
+        $doctor = Doctor::findOrFail($id);
+        $doctor->delete();
+
+        return redirect()->route('admin.doctors.index')->with('success', 'Doctor deleted successfully.');
+    }
+
+    // Patient Management
+    public function patients()
+    {
+        $patients = Patient::all();
+        return view('admin.patients.index', compact('patients'));
+    }
+
+    public function createPatient()
+    {
+        return view('admin.patients.create');
+    }
+
+    public function storePatient(Request $request)
+    {
+        $request->validate([
+            'cPatientID' => 'required|string|max:10|unique:tblpatient,cPatientID',
+            'cName' => 'required|string|max:50',
+            'cEmail' => 'required|email|max:50|unique:tblpatient,cEmail',
+            'cPhone' => 'required|string|max:15',
+        ]);
+
+        Patient::create($request->all());
+
+        return redirect()->route('admin.patients.index')->with('success', 'Patient created successfully.');
+    }
+
+    public function editPatient($id)
+    {
+        $patient = Patient::findOrFail($id);
+        return view('admin.patients.edit', compact('patient'));
+    }
+
+    public function updatePatient(Request $request, $id)
+    {
+        $request->validate([
+            'cName' => 'required|string|max:50',
+            'cEmail' => 'required|email|max:50|unique:tblpatient,cEmail,' . $id . ',cPatientID',
+            'cPhone' => 'required|string|max:15',
+        ]);
+
+        $patient = Patient::findOrFail($id);
+        $patient->update($request->all());
+
+        return redirect()->route('admin.patients.index')->with('success', 'Patient updated successfully.');
+    }
+
+    public function destroyPatient($id)
+    {
+        $patient = Patient::findOrFail($id);
+        $patient->delete();
+
+        return redirect()->route('admin.patients.index')->with('success', 'Patient deleted successfully.');
+    }
+
+    // Appointment Management
+    public function appointments()
+    {
+        $appointments = Appointment::with(['patient', 'doctor'])->get();
+        return view('admin.appointments.index', compact('appointments'));
+    }
+
+    public function createAppointment()
+    {
+        $patients = Patient::all();
+        $doctors = Doctor::all();
+        return view('admin.appointments.create', compact('patients', 'doctors'));
+    }
+
+    public function storeAppointment(Request $request)
+    {
+        $request->validate([
+            'cAppointmentID' => 'required|string|max:10|unique:tblappointment,cAppointmentID',
+            'cPatientID' => 'required|string|exists:tblpatient,cPatientID',
+            'cDoctorID' => 'required|string|exists:tbldoctor,cDoctorID',
+            'dAppointmentDateTime' => 'required|date',
+            'cPurpose' => 'required|string|max:255', // Added validation for cPurpose
+            'cStatus' => 'required|string|max:20',
+        ]);
+
+        Appointment::create($request->all());
+
+        return redirect()->route('admin.appointments.index')->with('success', 'Appointment created successfully.');
+    }
+
+    public function editAppointment($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $patients = Patient::all();
+        $doctors = Doctor::all();
+        return view('admin.appointments.edit', compact('appointment', 'patients', 'doctors'));
+    }
+
+    public function updateAppointment(Request $request, $id)
+    {
+        $request->validate([
+            'cPatientID' => 'required|string|exists:tblpatient,cPatientID',
+            'cDoctorID' => 'required|string|exists:tbldoctor,cDoctorID',
+            'dAppointmentDateTime' => 'required|date',
+            'cPurpose' => 'required|string|max:255', // Added validation for cPurpose
+            'cStatus' => 'required|string|max:20',
+        ]);
+
+        $appointment = Appointment::findOrFail($id);
+        $appointment->update($request->all());
+
+        return redirect()->route('admin.appointments.index')->with('success', 'Appointment updated successfully.');
+    }
+
+    public function destroyAppointment($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $appointment->delete();
+
+        return redirect()->route('admin.appointments.index')->with('success', 'Appointment deleted successfully.');
+    }
+
+    // Billing Management
+    public function billing()
+    {
+        $billings = Billing::with('patient')->get();
+        return view('admin.billing.index', compact('billings'));
+    }
+
+    public function createBilling()
+    {
+        $patients = Patient::all();
+        return view('admin.billing.create', compact('patients'));
+    }
+
+    public function storeBilling(Request $request)
+    {
+        $request->validate([
+            'cBillingID' => 'required|string|max:10|unique:tblbilling,cBillingID',
+            'cPatientID' => 'required|string|exists:tblpatient,cPatientID',
+            'fAmount' => 'required|numeric',
+            'dBillingDate' => 'required|date',
+            'cStatus' => 'required|string|max:20',
+        ]);
+
+        Billing::create($request->all());
+
+        return redirect()->route('admin.billing.index')->with('success', 'Billing record created successfully.');
+    }
+
+    public function editBilling(Billing $billing)
+    {
+        $patients = Patient::all();
+        return view('admin.billing.edit', compact('billing', 'patients'));
+    }
+
+    public function updateBilling(Request $request, Billing $billing)
+    {
+        $request->validate([
+            'cPatientID' => 'required|string|exists:tblpatient,cPatientID',
+            'fAmount' => 'required|numeric',
+            'dBillingDate' => 'required|date',
+            'cStatus' => 'required|string|max:20',
+        ]);
+
+        $billing->update($request->all());
+
+        return redirect()->route('admin.billing.index')->with('success', 'Billing record updated successfully.');
+    }
+
+    public function destroyBilling(Billing $billing)
+    {
+        $billing->delete();
+
+        return redirect()->route('admin.billing.index')->with('success', 'Billing record deleted successfully.');
+    }
+
+    // User Management
+    public function users()
+    {
+        $users = User::all();
+        return view('admin.users.index', compact('users'));
+    }
+
+    public function createUser()
+    {
+        return view('admin.users.create');
+    }
+
+    public function storeUser(Request $request)
+    {
+        $rules = [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|string|in:admin,doctor,patient,lab,pharmacy,reception',
+        ];
+
+        if ($request->role === 'patient') {
+            $rules['nAge'] = 'required|string';
+            $rules['cGender'] = 'required|string|in:Male,Female,Other';
+            $rules['cAddress'] = 'required|string|max:255';
+            $rules['patient_cContactNumber'] = 'required|string|max:20';
+        } elseif ($request->role === 'doctor') {
+            $rules['cSpecialization'] = 'required|string|max:50';
+            $rules['doctor_cContactNumber'] = 'required|string|max:15';
+        } elseif ($request->role === 'lab') {
+            $rules['lab_cContactNumber'] = 'required|string|max:15';
         }
+
+        $request->validate($rules);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
+        ]);
+
+        if ($request->role === 'doctor') {
+            Doctor::create([
+                'cDoctorID' => 'DR' . str_pad($user->id, 5, '0', STR_PAD_LEFT),
+                'cUserID' => $user->id,
+                'cName' => $request->name,
+                'cEmail' => $request->email,
+                'cSpecialization' => $request->cSpecialization,
+                'cContactNumber' => $request->doctor_cContactNumber,
+                'cAvailability' => 'Not Available',
+            ]);
+        } elseif ($request->role === 'patient') {
+            Patient::create([
+                'cPatientID' => 'PT' . str_pad($user->id, 5, '0', STR_PAD_LEFT),
+                'cUserID' => $user->id,
+                'cName' => $request->name,
+                'cEmail' => $request->email,
+                'nAge' => $request->nAge,
+                'cGender' => $request->cGender,
+                'cAddress' => $request->cAddress,
+                'cPhone' => $request->patient_cContactNumber,
+            ]);
+        } elseif ($request->role === 'lab') {
+            LabTechnician::create([
+                'cLabTechnicianID' => 'LT' . str_pad($user->id, 5, '0', STR_PAD_LEFT),
+                'cUserID' => $user->id,
+                'cName' => $request->name,
+                'cEmail' => $request->email,
+                'cContactNumber' => $request->lab_cContactNumber,
+            ]);
+        }
+
+        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
+    }
+
+    public function editUser($id)
+    {
+        $user = User::findOrFail($id);
+        return view('admin.users.edit', compact('user'));
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8|confirmed',
+            'role' => 'required|string|in:admin,doctor,patient,lab,pharmacy,reception',
+        ]);
+
+        $data = $request->except('password');
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
 
     public function destroyUser($id)
     {
-        try {
-            $user = User::findOrFail($id);
+        $user = User::findOrFail($id);
+        $user->delete();
 
-            // Prevent deleting self
-            if (auth()->id() == $user->id) {
-                return redirect()->back()
-                               ->with('error', 'You cannot delete your own account.');
-            }
-
-            $userName = $user->name;
-            $user->delete();
-
-            // Log the user deletion
-            AuditLog::logAction(
-                auth()->user(),
-                'user.deleted',
-                "Deleted user: {$userName}"
-            );
-
-            return redirect()->route('admin.users')
-                           ->with('success', 'User deleted successfully.');
-
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return redirect()->back()
-                           ->with('error', 'User not found.');
-        } catch (\Exception $e) {
-            \Log::error('User deletion failed: ' . $e->getMessage());
-
-            return redirect()->back()
-                           ->with('error', 'Failed to delete user. Please try again.');
-        }
+        return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
     }
 
-    public function financials(Request $request)
+    public function analytics()
     {
-        $query = Billing::with(['patient', 'appointment']);
-
-        // Apply filters
-        if ($request->has('search')) {
-            $search = $request->get('search');
-            $query->where(function($q) use ($search) {
-                $q->where('InvoiceNumber', 'like', "%{$search}%")
-                  ->orWhereHas('patient', function($q2) use ($search) {
-                      $q2->where('Name', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        if ($request->has('status') && $request->status !== 'all') {
-            $query->where('PaymentStatus', $request->status);
-        }
-
-        if ($request->has('date_from')) {
-            $query->where('IssueDate', '>=', $request->date_from);
-        }
-
-        if ($request->has('date_to')) {
-            $query->where('IssueDate', '<=', $request->date_to);
-        }
-
-        $billings = $query->latest()->paginate(25);
-
-        $financialStats = [
-            'total_revenue' => Billing::paid()->sum('FinalAmount'),
-            'pending_revenue' => Billing::pending()->sum('FinalAmount'),
-            'overdue_revenue' => Billing::overdue()->sum('FinalAmount'),
-            'monthly_revenue' => Billing::paid()
-                                ->whereYear('IssueDate', date('Y'))
-                                ->whereMonth('IssueDate', date('m'))
-                                ->sum('FinalAmount'),
-        ];
-
-        return view('admin.financials', compact('billings', 'financialStats'));
+        // Placeholder for analytics data
+        $analyticsData = [];
+        return view('admin.analytics', compact('analyticsData'));
     }
 
-    public function generateReport(Request $request)
+    public function reports(Request $request)
     {
-        $validated = $request->validate([
-            'report_type' => 'required|in:financial,users,appointments,audit',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'format' => 'required|in:pdf,csv,excel',
-        ]);
+        $reportData = null;
+        if ($request->isMethod('post')) {
+            $request->validate([
+                'report_type' => 'required|string',
+                'date_range' => 'required|string',
+            ]);
 
-        try {
-            $startDate = Carbon::parse($validated['start_date']);
-            $endDate = Carbon::parse($validated['end_date']);
+            list($startDate, $endDate) = explode(' to ', $request->date_range);
+            $startDate = Carbon::parse($startDate)->startOfDay();
+            $endDate = Carbon::parse($endDate)->endOfDay();
 
-            // Generate report based on type
-            switch ($validated['report_type']) {
-                case 'financial':
-                    $data = $this->generateFinancialReport($startDate, $endDate);
-                    $fileName = "financial-report-{$startDate->format('Y-m-d')}-to-{$endDate->format('Y-m-d')}";
+            switch ($request->report_type) {
+                case 'patient_demographics':
+                    $reportData = Patient::whereBetween('created_at', [$startDate, $endDate])
+                        ->selectRaw('cGender, count(*) as count')
+                        ->groupBy('cGender')
+                        ->get();
                     break;
-
-                case 'users':
-                    $data = $this->generateUserReport($startDate, $endDate);
-                    $fileName = "user-report-{$startDate->format('Y-m-d')}-to-{$endDate->format('Y-m-d')}";
+                case 'appointment_trends':
+                    $reportData = Appointment::whereBetween('dAppointmentDateTime', [$startDate, $endDate])
+                        ->selectRaw('DATE(dAppointmentDateTime) as date, count(*) as count')
+                        ->groupBy('date')
+                        ->orderBy('date', 'asc')
+                        ->get();
                     break;
-
-                case 'appointments':
-                    $data = $this->generateAppointmentReport($startDate, $endDate);
-                    $fileName = "appointment-report-{$startDate->format('Y-m-d')}-to-{$endDate->format('Y-m-d')}";
-                    break;
-
-                case 'audit':
-                    $data = $this->generateAuditReport($startDate, $endDate);
-                    $fileName = "audit-report-{$startDate->format('Y-m-d')}-to-{$endDate->format('Y-m-d')}";
+                case 'billing_summary':
+                    $reportData = Billing::whereBetween('dBillingDate', [$startDate, $endDate])
+                        ->selectRaw('cStatus, SUM(fAmount) as total, COUNT(*) as count')
+                        ->groupBy('cStatus')
+                        ->get();
                     break;
             }
-
-            // Log report generation
-            AuditLog::logAction(
-                auth()->user(),
-                'report.generated',
-                "Generated {$validated['report_type']} report from {$startDate->format('Y-m-d')} to {$endDate->format('Y-m-d')}"
-            );
-
-            // Here you would implement the actual export logic
-            // For now, we'll return a success message
-            return redirect()->back()
-                           ->with('success', "Report generated successfully. Format: {$validated['format']}");
-
-        } catch (\Exception $e) {
-            \Log::error('Report generation failed: ' . $e->getMessage());
-
-            return redirect()->back()
-                           ->with('error', 'Failed to generate report. Please try again.');
         }
-    }
 
-    private function generateFinancialReport($startDate, $endDate)
-    {
-        return Billing::with(['patient', 'appointment'])
-                ->whereBetween('IssueDate', [$startDate, $endDate])
-                ->get();
-    }
-
-    private function generateUserReport($startDate, $endDate)
-    {
-        return User::with(['patient', 'doctor', 'labTechnician'])
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->get();
-    }
-
-    private function generateAppointmentReport($startDate, $endDate)
-    {
-        return Appointment::with(['patient', 'doctor'])
-                ->whereBetween('Date', [$startDate, $endDate])
-                ->get();
-    }
-
-    private function generateAuditReport($startDate, $endDate)
-    {
-        return AuditLog::with('user')
-                ->whereBetween('performed_at', [$startDate, $endDate])
-                ->get();
+        return view('admin.reports', compact('reportData'));
     }
 }

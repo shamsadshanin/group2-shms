@@ -1,0 +1,37 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-4">Add Doctor</h1>
+
+    <form action="{{ route('admin.doctors.store') }}" method="POST" class="bg-white p-6 rounded-lg shadow-md">
+        @csrf
+        <div class="mb-4">
+            <label for="cDoctorID" class="block text-gray-700 font-bold mb-2">Doctor ID:</label>
+            <input type="text" name="cDoctorID" id="cDoctorID" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+        </div>
+        <div class="mb-4">
+            <label for="cName" class="block text-gray-700 font-bold mb-2">Name:</label>
+            <input type="text" name="cName" id="cName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+        </div>
+        <div class="mb-4">
+            <label for="cSpecialization" class="block text-gray-700 font-bold mb-2">Specialization:</label>
+            <input type="text" name="cSpecialization" id="cSpecialization" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+        </div>
+        <div class="mb-4">
+            <label for="cEmail" class="block text-gray-700 font-bold mb-2">Email:</label>
+            <input type="email" name="cEmail" id="cEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+        </div>
+        <div class="mb-4">
+            <label for="cContactNumber" class="block text-gray-700 font-bold mb-2">Contact Number:</label>
+            <input type="text" name="cContactNumber" id="cContactNumber" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+        </div>
+        <div class="mb-4">
+            <label for="cAvailability" class="block text-gray-700 font-bold mb-2">Availability:</label>
+            <input type="text" name="cAvailability" id="cAvailability" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+        </div>
+
+        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Add Doctor</button>
+    </form>
+</div>
+@endsection

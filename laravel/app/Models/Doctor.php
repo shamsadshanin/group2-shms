@@ -4,73 +4,45 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Doctor extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'DoctorID';
-    public $incrementing = true;
+    protected $table = 'tbldoctor';
+    protected $primaryKey = 'cDoctorID';
+    public $incrementing = false;
+    protected $keyType = 'string';
+    public $timestamps = true;
 
     protected $fillable = [
-        'user_id', 'Name', 'Specialization', 'Email',
-        'ContactNumber', 'Qualifications', 'ExperienceYears',
-        'Availability', 'IsActive'
+        'cDoctorID',
+        'cName',
+        'cSpecialization',
+        'cEmail',
+        'cContactNumber',
+        'cAvailability'
     ];
 
-    protected $casts = [
-        'Availability' => 'array',
-        'IsActive' => 'boolean',
-    ];
-
-    // Relationship with User
-    public function user()
+    public function appointments(): HasMany
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(Appointment::class, 'cDoctorID', 'cDoctorID');
     }
 
-    // Relationship with Appointments
-    public function appointments()
+    public function prescriptions(): HasMany
     {
-        return $this->hasMany(Appointment::class, 'DoctorID');
+        return $this->hasMany(Prescription::class, 'cDoctorID', 'cDoctorID');
     }
 
-    // Relationship with Prescriptions
-    public function prescriptions()
+    public function medicalRecords(): HasManyThrough
     {
-        return $this->hasMany(Prescription::class, 'DoctorID');
+        return $this->hasManyThrough(MedicalRecord::class, Appointment::class, 'cDoctorID', 'cPatientID', 'cDoctorID', 'cPatientID');
     }
 
-    // Get today's appointments
-    public function todaysAppointments()
+    public function labTests(): HasMany
     {
-        return $this->appointments()
-            ->where('Date', today()->format('Y-m-d'))
-            ->whereIn('Status', ['Pending', 'Confirmed'])
-            ->orderBy('Time', 'asc')
-            ->with('patient');
-    }
-
-    // Get upcoming appointments
-    public function upcomingAppointments()
-    {
-        return $this->appointments()
-            ->where('Date', '>=', today()->format('Y-m-d'))
-            ->whereIn('Status', ['Pending', 'Confirmed'])
-            ->orderBy('Date', 'asc')
-            ->orderBy('Time', 'asc')
-            ->with('patient');
-    }
-
-    // Check if doctor is available at specific time
-    public function isAvailable($date, $time)
-    {
-        $conflictingAppointment = $this->appointments()
-            ->where('Date', $date)
-            ->where('Time', $time)
-            ->whereIn('Status', ['Pending', 'Confirmed'])
-            ->exists();
-
-        return !$conflictingAppointment;
+        return $this->hasMany(LabTest::class, 'cDoctorID', 'cDoctorID');
     }
 }

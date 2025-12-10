@@ -3,602 +3,394 @@
 @section('title', 'User Management')
 
 @section('content')
-<div class="container-fluid px-4">
-    <!-- Page Header -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">User Management</h1>
-            <p class="mb-0">Manage system users, roles, and permissions</p>
-        </div>
-        <div>
-            <button class="btn btn-primary" data-toggle="modal" data-target="#createUserModal">
-                <i class="fas fa-user-plus fa-sm"></i> Add New User
-            </button>
-        </div>
+<div class="px-4 py-6 sm:px-0">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">User Management</h1>
+        <p class="mt-2 text-gray-600">Manage system users and their roles</p>
     </div>
 
-    <!-- User Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-2 col-md-6 mb-4">
-            <div class="card border-left-primary h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Users</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $userStats['total'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
+    <!-- User Actions -->
+    <div class="mb-6 bg-white p-4 rounded-lg shadow">
+        <div class="flex justify-between items-center">
+            <div class="flex space-x-4">
+                <button onclick="openAddUserModal()" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                    <i class="fas fa-user-plus mr-2"></i>Add User
+                </button>
+                <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-300">
+                    <i class="fas fa-download mr-2"></i>Export Users
+                </button>
             </div>
-        </div>
-
-        <div class="col-xl-2 col-md-6 mb-4">
-            <div class="card border-left-success h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Administrators</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $userStats['admins'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-shield fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-2 col-md-6 mb-4">
-            <div class="card border-left-info h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Doctors</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $userStats['doctors'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-md fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-2 col-md-6 mb-4">
-            <div class="card border-left-warning h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Patients</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $userStats['patients'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-injured fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-2 col-md-6 mb-4">
-            <div class="card border-left-secondary h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
-                                Lab Technicians</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $userStats['lab_technicians'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-vial fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
+            <div class="flex space-x-2">
+                <select class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option>All Roles</option>
+                    <option>Admin</option>
+                    <option>Doctor</option>
+                    <option>Patient</option>
+                    <option>Lab Technician</option>
+                    <option>Pharmacy</option>
+                    <option>Receptionist</option>
+                </select>
+                <input type="text" placeholder="Search users..." class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
         </div>
     </div>
 
-    <!-- Filters and Search -->
-    <div class="card mb-4">
-        <div class="card-header bg-white py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Filters</h6>
-        </div>
-        <div class="card-body">
-            <form action="{{ route('admin.users') }}" method="GET" class="form-inline">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <input type="text"
-                               name="search"
-                               class="form-control w-100"
-                               placeholder="Search by name or email..."
-                               value="{{ request('search') }}">
+    <!-- User Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                        <i class="fas fa-users text-white text-xl"></i>
                     </div>
-                    <div class="col-md-3">
-                        <select name="role" class="form-control w-100">
-                            <option value="all" {{ request('role') == 'all' ? 'selected' : '' }}>All Roles</option>
-                            <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                            <option value="doctor" {{ request('role') == 'doctor' ? 'selected' : '' }}>Doctor</option>
-                            <option value="patient" {{ request('role') == 'patient' ? 'selected' : '' }}>Patient</option>
-                            <option value="lab_technician" {{ request('role') == 'lab_technician' ? 'selected' : '' }}>Lab Technician</option>
-                            <option value="receptionist" {{ request('role') == 'receptionist' ? 'selected' : '' }}>Receptionist</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select name="status" class="form-control w-100">
-                            <option value="all" {{ request('status') == 'all' ? 'selected' : '' }}>All Status</option>
-                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-search"></i> Filter
-                        </button>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ $totalUsers }}</dd>
+                        </dl>
                     </div>
                 </div>
-            </form>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                        <i class="fas fa-user-shield text-white text-xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Admins</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ $adminCount }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-blue-600 rounded-md p-3">
+                        <i class="fas fa-user-md text-white text-xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Doctors</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ $doctorCount }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+                        <i class="fas fa-user-injured text-white text-xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Patients</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ $patientCount }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                        <i class="fas fa-flask text-white text-xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Lab Techs</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ $labCount }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-red-500 rounded-md p-3">
+                        <i class="fas fa-user-check text-white text-xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Active</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ $activeUsers }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Users Table -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">User List</h6>
-            <span class="badge badge-primary">Total: {{ $users->total() }}</span>
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">All Users</h3>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" id="usersTable" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>User</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Last Login</th>
-                            <th>Registered</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($users as $user)
-                        <tr>
-                            <td>{{ $user->id }}</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="mr-3">
-                                        <div class="avatar-circle">
-                                            <span class="initials">{{ substr($user->name, 0, 2) }}</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="font-weight-bold">{{ $user->name }}</div>
-                                        <div class="text-muted small">{{ $user->email }}</div>
-                                    </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            User
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Email
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Role
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Last Login
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach($users as $user)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=10B981&color=white" alt="{{ $user->name }}">
                                 </div>
-                            </td>
-                            <td>
-                                <span class="badge badge-{{ $user->getRoleBadgeClass() }}">
-                                    {{ ucfirst($user->role) }}
-                                </span>
-                                @if($user->getProfile())
-                                <div class="small text-muted mt-1">
-                                    {{ $user->getProfile()->getTypeSpecificInfo() }}
-                                </div>
-                                @endif
-                            </td>
-                            <td>
-                                @if($user->is_active)
-                                <span class="badge badge-success">
-                                    <i class="fas fa-check-circle"></i> Active
-                                </span>
-                                @else
-                                <span class="badge badge-danger">
-                                    <i class="fas fa-times-circle"></i> Inactive
-                                </span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($user->last_login_at)
-                                <span class="text-muted">
-                                    {{ $user->last_login_at->diffForHumans() }}
-                                </span>
-                                <div class="small text-muted">
-                                    {{ $user->last_login_at->format('M d, Y h:i A') }}
-                                </div>
-                                @else
-                                <span class="text-muted">Never</span>
-                                @endif
-                            </td>
-                            <td>
-                                {{ $user->created_at->format('M d, Y') }}
-                                <div class="small text-muted">
-                                    {{ $user->created_at->diffForHumans() }}
-                                </div>
-                            </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <button type="button"
-                                            class="btn btn-sm btn-info"
-                                            data-toggle="modal"
-                                            data-target="#viewUserModal{{ $user->id }}">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-
-                                    <button type="button"
-                                            class="btn btn-sm btn-warning"
-                                            data-toggle="modal"
-                                            data-target="#editUserModal{{ $user->id }}">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-
-                                    @if($user->id != auth()->id())
-                                    <form action="{{ route('admin.users.destroy', $user->id) }}"
-                                          method="POST"
-                                          class="d-inline"
-                                          onsubmit="return confirm('Are you sure you want to delete this user?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-
-                                    <button type="button"
-                                            class="btn btn-sm {{ $user->is_active ? 'btn-secondary' : 'btn-success' }}"
-                                            onclick="toggleUserStatus({{ $user->id }})">
-                                        <i class="fas {{ $user->is_active ? 'fa-ban' : 'fa-check' }}"></i>
-                                    </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- View User Modal -->
-                        <div class="modal fade" id="viewUserModal{{ $user->id }}" tabindex="-1" role="dialog">
-                            <div class="modal-dialog modal-lg" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">User Details</h5>
-                                        <button type="button" class="close" data-dismiss="modal">
-                                            <span>&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="row">
-                                            <div class="col-md-4 text-center">
-                                                <div class="avatar-circle-lg mb-3">
-                                                    <span class="initials-lg">{{ substr($user->name, 0, 2) }}</span>
-                                                </div>
-                                                <h5>{{ $user->name }}</h5>
-                                                <p class="text-muted">{{ $user->email }}</p>
-
-                                                <span class="badge badge-{{ $user->getRoleBadgeClass() }} p-2">
-                                                    {{ ucfirst($user->role) }}
-                                                </span>
-
-                                                @if($user->is_active)
-                                                <span class="badge badge-success p-2 mt-2">
-                                                    <i class="fas fa-check-circle"></i> Active
-                                                </span>
-                                                @else
-                                                <span class="badge badge-danger p-2 mt-2">
-                                                    <i class="fas fa-times-circle"></i> Inactive
-                                                </span>
-                                                @endif
-                                            </div>
-                                            <div class="col-md-8">
-                                                <h6 class="font-weight-bold">User Information</h6>
-                                                <table class="table table-sm">
-                                                    <tr>
-                                                        <td><strong>User ID:</strong></td>
-                                                        <td>{{ $user->id }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><strong>Timezone:</strong></td>
-                                                        <td>{{ $user->timezone }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><strong>Last Login:</strong></td>
-                                                        <td>
-                                                            @if($user->last_login_at)
-                                                            {{ $user->last_login_at->format('M d, Y h:i A') }}
-                                                            @else
-                                                            Never
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><strong>Registered:</strong></td>
-                                                        <td>{{ $user->created_at->format('M d, Y h:i A') }}</td>
-                                                    </tr>
-                                                </table>
-
-                                                @if($user->getProfile())
-                                                <h6 class="font-weight-bold mt-3">Profile Details</h6>
-                                                <div class="card">
-                                                    <div class="card-body">
-                                                        {!! $user->getProfile()->getProfileDetails() !!}
-                                                    </div>
-                                                </div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                    </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>
+                                    <div class="text-sm text-gray-500">{{ $user->profile_id ?? 'N/A' }}</div>
                                 </div>
                             </div>
-                        </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ $user->email }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @switch($user->role)
+                                @case('admin')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                @break
+                                @case('doctor')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                @break
+                                @case('patient')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                @break
+                                @case('lab')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                @break
+                                @case('pharmacy')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                @break
+                                @default
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                            @endswitch
+                                {{ ucfirst($user->role) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {{ $user->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                                {{ ucfirst($user->status ?? 'inactive') }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ $user->last_login ? $user->last_login->diffForHumans() : 'Never' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="viewUser({{ $user->id }})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <a href="{{ route('admin.users.edit', $user->id) }}" class="text-green-600 hover:text-green-900 mr-3">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            @if($user->role !== 'admin')
+                            <button class="text-red-600 hover:text-red-900" onclick="deleteUser({{ $user->id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            @endif
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-                        <!-- Edit User Modal -->
-                        <div class="modal fade" id="editUserModal{{ $user->id }}" tabindex="-1" role="dialog">
-                            <div class="modal-dialog" role="document">
-                                <form action="{{ route('admin.users.update', $user->id) }}" method="POST">
-                                    @csrf
-                                    @method('PUT')
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Edit User: {{ $user->name }}</h5>
-                                            <button type="button" class="close" data-dismiss="modal">
-                                                <span>&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="form-group">
-                                                <label for="name{{ $user->id }}">Full Name</label>
-                                                <input type="text"
-                                                       class="form-control"
-                                                       id="name{{ $user->id }}"
-                                                       name="name"
-                                                       value="{{ $user->name }}"
-                                                       required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="email{{ $user->id }}">Email Address</label>
-                                                <input type="email"
-                                                       class="form-control"
-                                                       id="email{{ $user->id }}"
-                                                       name="email"
-                                                       value="{{ $user->email }}"
-                                                       required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="role{{ $user->id }}">Role</label>
-                                                <select class="form-control"
-                                                        id="role{{ $user->id }}"
-                                                        name="role"
-                                                        required
-                                                        {{ $user->id == auth()->id() ? 'disabled' : '' }}>
-                                                    <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Administrator</option>
-                                                    <option value="doctor" {{ $user->role == 'doctor' ? 'selected' : '' }}>Doctor</option>
-                                                    <option value="patient" {{ $user->role == 'patient' ? 'selected' : '' }}>Patient</option>
-                                                    <option value="lab_technician" {{ $user->role == 'lab_technician' ? 'selected' : '' }}>Lab Technician</option>
-                                                    <option value="receptionist" {{ $user->role == 'receptionist' ? 'selected' : '' }}>Receptionist</option>
-                                                </select>
-                                                @if($user->id == auth()->id())
-                                                <small class="form-text text-warning">
-                                                    You cannot change your own role.
-                                                </small>
-                                                @endif
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="timezone{{ $user->id }}">Timezone</label>
-                                                <select class="form-control"
-                                                        id="timezone{{ $user->id }}"
-                                                        name="timezone"
-                                                        required>
-                                                    <option value="UTC" {{ $user->timezone == 'UTC' ? 'selected' : '' }}>UTC</option>
-                                                    <option value="America/New_York" {{ $user->timezone == 'America/New_York' ? 'selected' : '' }}>Eastern Time</option>
-                                                    <option value="America/Chicago" {{ $user->timezone == 'America/Chicago' ? 'selected' : '' }}>Central Time</option>
-                                                    <option value="America/Denver" {{ $user->timezone == 'America/Denver' ? 'selected' : '' }}>Mountain Time</option>
-                                                    <option value="America/Los_Angeles" {{ $user->timezone == 'America/Los_Angeles' ? 'selected' : '' }}>Pacific Time</option>
-                                                    <option value="Asia/Dhaka" {{ $user->timezone == 'Asia/Dhaka' ? 'selected' : '' }}>Bangladesh Time</option>
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="custom-control custom-switch">
-                                                    <input type="checkbox"
-                                                           class="custom-control-input"
-                                                           id="is_active{{ $user->id }}"
-                                                           name="is_active"
-                                                           value="1"
-                                                           {{ $user->is_active ? 'checked' : '' }}
-                                                           {{ $user->id == auth()->id() ? 'disabled' : '' }}>
-                                                    <label class="custom-control-label" for="is_active{{ $user->id }}">
-                                                        Active Account
-                                                    </label>
-                                                    @if($user->id == auth()->id())
-                                                    <small class="form-text text-warning">
-                                                        You cannot deactivate your own account.
-                                                    </small>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                            <button type="submit" class="btn btn-primary">Update User</button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-4">
-                                <div class="empty-state">
-                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                                    <h4>No users found</h4>
-                                    <p class="text-muted">No users match your search criteria.</p>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+<!-- User Details Modal -->
+<div id="userModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">User Details</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
+            <div id="userDetails" class="space-y-4">
+                <!-- User details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Pagination -->
-            <div class="d-flex justify-content-between align-items-center mt-4">
-                <div class="text-muted">
-                    Showing {{ $users->firstItem() }} to {{ $users->lastItem() }} of {{ $users->total() }} entries
+<!-- Add User Modal -->
+<div id="addUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Add New User</h3>
+                <button onclick="closeAddUserModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addUserForm" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                    <input type="text" name="name" id="userName" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md p-3" required>
                 </div>
                 <div>
-                    {{ $users->withQueryString()->links() }}
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" name="email" id="userEmail" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md p-3" required>
                 </div>
-            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                    <select name="role" id="userRole" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md p-3" required>
+                        <option value="">Select Role</option>
+                        <option value="admin">Admin</option>
+                        <option value="doctor">Doctor</option>
+                        <option value="patient">Patient</option>
+                        <option value="lab">Lab Technician</option>
+                        <option value="pharmacy">Pharmacy</option>
+                        <option value="reception">Receptionist</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" name="password" id="userPassword" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md p-3" required>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeAddUserModal()" class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                        Add User
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Create User Modal -->
-<div class="modal fade" id="createUserModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <form action="{{ route('admin.users.store') }}" method="POST">
-            @csrf
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Create New User</h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="name">Full Name *</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email Address *</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password *</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                        <small class="form-text text-muted">Minimum 8 characters</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="password_confirmation">Confirm Password *</label>
-                        <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="role">Role *</label>
-                        <select class="form-control" id="role" name="role" required>
-                            <option value="">Select Role</option>
-                            <option value="admin">Administrator</option>
-                            <option value="doctor">Doctor</option>
-                            <option value="patient">Patient</option>
-                            <option value="lab_technician">Lab Technician</option>
-                            <option value="receptionist">Receptionist</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="timezone">Timezone</label>
-                        <select class="form-control" id="timezone" name="timezone">
-                            <option value="UTC">UTC</option>
-                            <option value="America/New_York">Eastern Time</option>
-                            <option value="America/Chicago">Central Time</option>
-                            <option value="America/Denver">Mountain Time</option>
-                            <option value="America/Los_Angeles">Pacific Time</option>
-                            <option value="Asia/Dhaka">Bangladesh Time</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create User</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<style>
-.avatar-circle {
-    width: 40px;
-    height: 40px;
-    background-color: #4e73df;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.avatar-circle-lg {
-    width: 100px;
-    height: 100px;
-    background-color: #4e73df;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-}
-
-.initials {
-    color: white;
-    font-weight: bold;
-    font-size: 16px;
-}
-
-.initials-lg {
-    color: white;
-    font-weight: bold;
-    font-size: 36px;
-}
-
-.badge-admin { background-color: #6610f2; }
-.badge-doctor { background-color: #20c9a6; }
-.badge-patient { background-color: #fd7e14; }
-.badge-lab_technician { background-color: #6f42c1; }
-.badge-receptionist { background-color: #36b9cc; }
-
-.empty-state {
-    text-align: center;
-    padding: 40px 0;
-}
-</style>
-
 <script>
-function toggleUserStatus(userId) {
-    if (confirm('Are you sure you want to change this user\'s status?')) {
-        fetch(`/admin/users/${userId}/toggle-status`, {
-            method: 'POST',
+const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+function viewUser(userId) {
+    const url = "{{ route('admin.api.users.show', ['id' => ':id']) }}".replace(':id', userId);
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('userDetails').innerHTML = `
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Name</label>
+                        <p class="text-sm text-gray-900">${data.name}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <p class="text-sm text-gray-900">${data.email}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Role</label>
+                        <p class="text-sm text-gray-900">${data.role}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Status</label>
+                        <p class="text-sm text-gray-900">${data.status ?? 'inactive'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Created</label>
+                        <p class="text-sm text-gray-900">${new Date(data.created_at).toLocaleString()}</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('userModal').classList.remove('hidden');
+        });
+}
+
+function deleteUser(userId) {
+    if (confirm('Are you sure you want to delete this user?')) {
+        const url = "{{ route('admin.api.users.destroy', ['id' => ':id']) }}".replace(':id', userId);
+        fetch(url, {
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': csrfToken
             }
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                alert('User deleted successfully');
                 location.reload();
             } else {
-                alert(data.message || 'Failed to update user status');
+                alert('Error: ' + data.message);
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while updating user status');
         });
     }
 }
 
-// Auto-focus search input
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.querySelector('input[name="search"]');
-    if (searchInput) {
-        searchInput.focus();
-    }
+function openAddUserModal() {
+    document.getElementById('addUserModal').classList.remove('hidden');
+}
+
+function closeAddUserModal() {
+    document.getElementById('addUserModal').classList.add('hidden');
+}
+
+function closeModal() {
+    document.getElementById('userModal').classList.add('hidden');
+}
+
+document.getElementById('addUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch("{{ route('admin.api.users.store') }}", {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('User created successfully');
+            closeAddUserModal();
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'An unknown error occurred.'));
+        }
+    });
 });
 </script>
 @endsection

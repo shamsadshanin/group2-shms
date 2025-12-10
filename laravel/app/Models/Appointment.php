@@ -9,58 +9,49 @@ class Appointment extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'AppointmentID';
+    protected $table = 'tblappointment';
+
+    protected $primaryKey = 'cAppointmentID';
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 
     protected $fillable = [
-        'PatientID', 'DoctorID', 'Date', 'Time',
-        'Purpose', 'Status', 'Notes'
+        'cAppointmentID',
+        'cPatientID',
+        'cDoctorID',
+        'dAppointmentDateTime',
+        'cPurpose', // Added cPurpose
+        'cStatus',
     ];
 
     protected $casts = [
-        'Date' => 'date',
+        'dAppointmentDateTime' => 'datetime',
     ];
 
-    // Relationship with Patient
     public function patient()
     {
-        return $this->belongsTo(Patient::class, 'PatientID');
+        return $this->belongsTo(Patient::class, 'cPatientID', 'cPatientID');
     }
 
-    // Relationship with Doctor
     public function doctor()
     {
-        return $this->belongsTo(Doctor::class, 'DoctorID');
+        return $this->belongsTo(Doctor::class, 'cDoctorID', 'cDoctorID');
     }
 
-    // Relationship with Prescription
+    public function labTests()
+    {
+        return $this->hasMany(LabTest::class, 'cAppointmentID', 'cAppointmentID');
+    }
+
     public function prescription()
     {
-        return $this->hasOne(Prescription::class, 'AppointmentID');
+        return $this->hasOne(Prescription::class, 'cAppointmentID', 'cAppointmentID');
     }
 
-    // Check if appointment has prescription
-    public function hasPrescription()
+    public function symptomInputs()
     {
-        return $this->prescription !== null;
-    }
-
-    // Scope for today's appointments
-    public function scopeToday($query)
-    {
-        return $query->where('Date', today()->format('Y-m-d'));
-    }
-
-    // Scope for upcoming appointments
-    public function scopeUpcoming($query)
-    {
-        return $query->where('Date', '>=', today()->format('Y-m-d'))
-                    ->whereIn('Status', ['Pending', 'Confirmed']);
-    }
-
-    // Check if appointment can be updated
-    public function canBeUpdated()
-    {
-        return in_array($this->Status, ['Pending', 'Confirmed']) &&
-               now()->lt($this->Date);
+        return $this->hasMany(SymptomInput::class, 'cAppointmentID', 'cAppointmentID');
     }
 }

@@ -1,59 +1,323 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Smart Healthcare Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A complete, production-ready healthcare management system built with Laravel 10/11 and MySQL, featuring role-based access control, AI-powered symptom checker, and comprehensive healthcare modules.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Core Modules
+- **Patient Module**: Dashboard, appointment booking, medical history, prescriptions, billing, and AI symptom checker
+- **Doctor Module**: Real-time appointments, patient history, prescriptions, lab requests
+- **Lab Technician Module**: Test management, result uploads, status updates
+- **Pharmacy Module**: Prescription management, medicine dispensing
+- **Receptionist Module**: Patient check-in, billing, appointment management
+- **Admin Module**: Analytics, user management, system reports
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Key Features
+- **Role-based Authentication**: 6 user roles (Admin, Doctor, Patient, Lab, Pharmacy, Reception)
+- **AI Symptom Checker**: Mock AI service for disease prediction
+- **Responsive Design**: Built with Tailwind CSS
+- **API Integration**: RESTful API for mobile app integration
+- **Database Management**: MySQL with comprehensive schema
+- **Billing System**: Payment processing and invoice generation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tech Stack
 
-## Learning Laravel
+- **Backend**: PHP 8.2+, Laravel 10/11
+- **Frontend**: Blade Templates, Tailwind CSS, JavaScript
+- **Database**: MySQL 8.0+
+- **Authentication**: Laravel Breeze with custom role management
+- **API**: RESTful API with JWT authentication
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Installation
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Prerequisites
+- PHP 8.2 or higher
+- MySQL 8.0 or higher
+- Composer
+- Node.js and npm
 
-## Laravel Sponsors
+### Setup Instructions
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd shms-group2
+   ```
 
-### Premium Partners
+2. **Install dependencies**
+   ```bash
+   composer install
+   npm install
+   ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+3. **Environment Configuration**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` file with your database credentials:
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=SmartHealthcareDB
+   DB_USERNAME=root
+   DB_PASSWORD=your_password
+   ```
+
+4. **Generate application key**
+   ```bash
+   php artisan key:generate
+   ```
+
+5. **Run migrations and seed database**
+   ```bash
+   php artisan migrate --seed
+   ```
+
+6. **Build frontend assets**
+   ```bash
+   npm run build
+   ```
+
+7. **Start the development server**
+   ```bash
+   php artisan serve
+   ```
+
+## Database Setup
+
+The system uses MySQL with the following database structure:
+
+### Main Tables
+- `users` - User authentication and role management
+- `tbldoctor` - Doctor profiles
+- `tblpatient` - Patient profiles
+- `tbllabtechnician` - Lab technician profiles
+- `tblappointment` - Appointment scheduling
+- `tblprescription` - Medical prescriptions
+- `tblmedicalrecord` - Patient medical records
+- `tblbilling` - Billing and invoices
+- `tbllabtest` - Laboratory tests
+- `tblsymptominput` - Symptom checker inputs
+- `tblsymptomresponse` - AI responses
+
+### Sample Data
+The system includes sample data for testing:
+- 1 Admin user
+- 3 Doctor users
+- 3 Patient users
+- 2 Lab Technician users
+- 1 Receptionist user
+- 1 Pharmacy user
+
+## Default Login Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@hospital.com | admin123 |
+| Doctor | ahmed@hospital.com | doctor123 |
+| Patient | rahim@gmail.com | patient123 |
+| Lab | tanvir@hospital.com | lab123 |
+| Reception | reception@hospital.com | reception123 |
+| Pharmacy | pharmacy@hospital.com | pharmacy123 |
+
+## API Endpoints
+
+### Authentication
+- `POST /api/login` - User login
+- `POST /api/logout` - User logout
+
+### Patient API
+- `GET /api/patient/appointments` - Get patient appointments
+- `GET /api/patient/medical-history` - Get medical history
+- `GET /api/patient/prescriptions` - Get prescriptions
+- `POST /api/patient/book-appointment` - Book appointment
+- `POST /api/patient/check-symptoms` - Check symptoms with AI
+
+### Doctor API
+- `GET /api/doctor/appointments` - Get doctor appointments
+- `GET /api/doctor/patient-history/{id}` - Get patient history
+- `POST /api/doctor/create-prescription` - Create prescription
+- `POST /api/doctor/request-lab-test` - Request lab test
+
+### Lab API
+- `GET /api/lab/tests` - Get lab tests
+- `POST /api/lab/update-status/{id}` - Update test status
+- `POST /api/lab/upload-report/{id}` - Upload test report
+
+### Pharmacy API
+- `GET /api/pharmacy/prescriptions` - Get prescriptions
+- `POST /api/pharmacy/mark-dispensed/{id}` - Mark as dispensed
+
+### Reception API
+- `GET /api/reception/appointments` - Get appointments
+- `POST /api/reception/book-appointment` - Book appointment
+- `POST /api/reception/create-patient` - Create patient
+
+### Admin API
+- `GET /api/admin/dashboard` - Get dashboard analytics
+- `GET /api/admin/users` - Get users
+- `GET /api/admin/analytics` - Get analytics data
+
+## Role-Based Access Control
+
+The system implements role-based access control with the following middleware:
+
+- `role:admin` - Administrator access
+- `role:doctor` - Doctor access
+- `role:patient` - Patient access
+- `role:lab` - Lab technician access
+- `role:pharmacy` - Pharmacy access
+- `role:reception` - Receptionist access
+
+## AI Symptom Checker
+
+The AI Symptom Checker provides mock disease predictions based on symptom descriptions:
+
+### Features
+- Keyword-based disease matching
+- Confidence scoring
+- Treatment recommendations
+- Health tips
+- Severity assessment
+
+### Usage
+1. Navigate to Patient Dashboard → Symptom Checker
+2. Enter symptom description
+3. View AI predictions and recommendations
+4. Get health tips based on symptoms
+
+## Dashboard Features
+
+### Patient Dashboard
+- Upcoming appointments
+- Medical history
+- Prescriptions
+- Billing status
+- Symptom checker
+
+### Doctor Dashboard
+- Daily appointments
+- Patient queue
+- Recent prescriptions
+- Pending lab tests
+
+### Lab Dashboard
+- Pending tests
+- In-progress tests
+- Completed tests
+- Test management
+
+### Pharmacy Dashboard
+- New prescriptions
+- Prescription details
+- Dispensing status
+
+### Reception Dashboard
+- Today's appointments
+- Patient check-in
+- Appointment management
+- Billing creation
+
+### Admin Dashboard
+- System analytics
+- User management
+- Revenue tracking
+- Disease trends
+- Report generation
+
+## Testing
+
+### Running Tests
+```bash
+php artisan test
+```
+
+### Manual Testing Checklist
+- [ ] User authentication and role-based access
+- [ ] Appointment booking and management
+- [ ] Prescription creation and tracking
+- [ ] Medical record management
+- [ ] Billing and payment processing
+- [ ] Lab test workflow
+- [ ] AI symptom checker
+- [ ] API endpoints
+- [ ] Responsive design
+- [ ] Data validation
+
+## Security Features
+
+- Role-based access control
+- Input validation and sanitization
+- CSRF protection
+- SQL injection prevention
+- XSS protection
+- Secure password hashing
+
+## Performance Optimization
+
+- Database indexing
+- Query optimization
+- Caching implementation
+- Asset optimization
+- Pagination for large datasets
+
+## Deployment
+
+### Production Setup
+1. Set up production environment
+2. Configure environment variables
+3. Run migrations
+4. Optimize configuration
+5. Set up cron jobs for scheduled tasks
+6. Configure SSL certificates
+
+### Environment Variables
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-domain.com
+DB_CONNECTION=mysql
+DB_HOST=your-db-host
+DB_PORT=3306
+DB_DATABASE=SmartHealthcareDB
+DB_USERNAME=your-db-user
+DB_PASSWORD=your-db-password
+```
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is licensed under the MIT License.
+
+## Support
+
+For support and questions:
+- Create an issue in the repository
+- Contact the development team
+- Check the documentation
+
+## Future Enhancements
+
+- Real AI integration for symptom checker
+- Mobile app development
+- Telemedicine features
+- Advanced reporting
+- Inventory management
+- Insurance integration
+- Multi-language support
+- Advanced analytics
+- Patient portal
+- Doctor portal
+
+---
+
+**Note**: This is a comprehensive healthcare management system designed for educational and demonstration purposes. Always ensure proper security measures and compliance with healthcare regulations before deploying to production.

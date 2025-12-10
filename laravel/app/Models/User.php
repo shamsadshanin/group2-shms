@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,91 +11,91 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'is_active',
-        'last_login_at', 'timezone', 'preferences'
+        'name',
+        'email',
+        'password',
+        'role',
+        'profile_id',
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'is_active' => 'boolean',
-        'last_login_at' => 'datetime',
-        'preferences' => 'array',
-    ];
-
-    // Relationships
-    public function patient()
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
     {
-        return $this->hasOne(Patient::class);
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
     }
 
+    /**
+     * Get the profile associated with the user.
+     */
+    public function profile()
+    {
+        return match ($this->role) {
+            'doctor' => $this->hasOne(Doctor::class, 'cEmail', 'email'),
+            'patient' => $this->hasOne(Patient::class, 'cEmail', 'email'),
+            default => $this->hasOne(User::class, 'id', 'id')->where('id', -1), // Dummy relationship
+        };
+    }
+
+    /**
+     * Get the doctor record associated with the user.
+     */
     public function doctor()
     {
-        return $this->hasOne(Doctor::class);
+        return $this->hasOne(Doctor::class, 'cEmail', 'email');
     }
 
+    /**
+     * Get the lab technician record associated with the user.
+     */
     public function labTechnician()
     {
-        return $this->hasOne(LabTechnician::class);
+        return $this->hasOne(LabTechnician::class, 'cEmail', 'email');
     }
 
-    public function auditLogs()
+    /**
+     * Check if user has a specific role.
+     */
+    public function hasRole(string $role): bool
     {
-        return $this->hasMany(AuditLog::class);
+        return $this->role === $role;
     }
 
-    // Scopes
-    public function scopeActive($query)
+    /**
+     * Check if user has any of the given roles.
+     */
+    public function hasAnyRole(array $roles): bool
     {
-        return $query->where('is_active', true);
+        return in_array($this->role, $roles);
     }
 
-    public function scopeByRole($query, $role)
+    /**
+     * Check if user has all of the given roles.
+     */
+    public function hasAllRoles(array $roles): bool
     {
-        return $query->where('role', $role);
-    }
-
-    public function scopeRecentlyActive($query, $days = 7)
-    {
-        return $query->where('last_login_at', '>=', now()->subDays($days));
-    }
-
-    // Helper Methods
-    public function isAdmin()
-    {
-        return $this->role === 'admin';
-    }
-
-    public function isDoctor()
-    {
-        return $this->role === 'doctor';
-    }
-
-    public function isPatient()
-    {
-        return $this->role === 'patient';
-    }
-
-    public function isLabTechnician()
-    {
-        return $this->role === 'lab_technician';
-    }
-
-    public function getProfile()
-    {
-        return $this->{$this->role} ?? null;
-    }
-
-    public function recordLogin()
-    {
-        $this->update(['last_login_at' => now()]);
-
-        // Log the login activity
-        AuditLog::logAction($this, 'user.login', 'User logged into the system');
+        return count(array_intersect($roles, [$this->role])) === count($roles);
     }
 }

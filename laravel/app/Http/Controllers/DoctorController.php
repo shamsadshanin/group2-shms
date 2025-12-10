@@ -2,195 +2,118 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Doctor;
 use App\Models\Appointment;
-use App\Models\Prescription;
+use App\Models\Doctor;
 use App\Models\Patient;
-use App\Http\Requests\PrescriptionRequest;
+use App\Models\Prescription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class DoctorController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('doctor'); // Custom middleware to ensure user is a doctor
+        $this->middleware('role:doctor');
     }
 
-    public function dashboard(Request $request)
+    private function getDoctor()
     {
-        $user = Auth::user();
-        $doctor = Doctor::where('user_id', $user->id)->firstOrFail();
-
-        // Base query for appointments
-        $query = Appointment::where('DoctorID', $doctor->DoctorID)
-                    ->with(['patient', 'prescription'])
-                    ->orderBy('Date', 'asc')
-                    ->orderBy('Time', 'asc');
-
-        // Apply filters
-        if ($request->has('search')) {
-            $search = $request->get('search');
-            $query->whereHas('patient', function($q) use ($search) {
-                $q->where('Name', 'like', "%{$search}%")
-                  ->orWhere('Email', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->has('status') && $request->status !== 'all') {
-            $query->where('Status', $request->status);
-        }
-
-        if ($request->has('date')) {
-            $query->where('Date', $request->date);
-        } else {
-            // Default to today and upcoming appointments
-            $query->where('Date', '>=', today()->format('Y-m-d'));
-        }
-
-        $appointments = $query->paginate(15);
-
-        // Statistics for dashboard
-        $stats = [
-            'today' => $doctor->todaysAppointments()->count(),
-            'upcoming' => $doctor->upcomingAppointments()->count(),
-            'pending' => $doctor->appointments()->where('Status', 'Pending')->count(),
-            'completed' => $doctor->appointments()->where('Status', 'Completed')->count(),
-        ];
-
-        return view('doctor.dashboard', compact('doctor', 'appointments', 'stats'));
+        return Doctor::where('cEmail', Auth::user()->email)->firstOrFail();
     }
 
-    public function updateAppointmentStatus(Request $request, $id)
+    public function dashboard()
     {
-        try {
-            $doctor = Auth::user()->doctor;
+        $doctor = $this->getDoctor();
+        $patients = Patient::whereHas('appointments', function ($query) use ($doctor) {
+            $query->where('cDoctorID', $doctor->cDoctorID);
+        })->withCount('appointments')->orderByDesc('appointments_count')->paginate(10);
 
-            $appointment = Appointment::where('AppointmentID', $id)
-                            ->where('DoctorID', $doctor->DoctorID)
-                            ->firstOrFail();
-
-            $validated = $request->validate([
-                'Status' => 'required|in:Pending,Confirmed,Completed,Cancelled',
-                'Notes' => 'nullable|string|max:500',
-            ]);
-
-            $appointment->update($validated);
-
-            return redirect()->back()
-                           ->with('success', 'Appointment status updated successfully.');
-
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return redirect()->back()
-                           ->with('error', 'Appointment not found.');
-        } catch (\Exception $e) {
-            \Log::error('Appointment status update failed: ' . $e->getMessage());
-
-            return redirect()->back()
-                           ->with('error', 'Failed to update appointment status. Please try again.');
-        }
+        return view('doctor.dashboard', [
+            'doctor' => $doctor,
+            'patients' => $patients,
+        ]);
     }
 
-    public function storePrescription(PrescriptionRequest $request)
+    public function appointments()
     {
-        try {
-            $doctor = Auth::user()->doctor;
+        $doctor = $this->getDoctor();
+        $appointments = Appointment::where('cDoctorID', $doctor->cDoctorID)
+            ->with('patient')
+            ->orderBy('dAppointmentDateTime', 'desc')
+            ->paginate(10);
 
-            // Verify the appointment belongs to this doctor
-            $appointment = Appointment::where('AppointmentID', $request->AppointmentID)
-                            ->where('DoctorID', $doctor->DoctorID)
-                            ->firstOrFail();
-
-            $prescription = Prescription::create([
-                'AppointmentID' => $request->AppointmentID,
-                'DoctorID' => $doctor->DoctorID,
-                'PatientID' => $appointment->PatientID,
-                'IssueDate' => now(),
-                'MedicineName' => $request->MedicineName,
-                'Dosage' => $request->Dosage,
-                'Frequency' => $request->Frequency,
-                'Duration' => $request->Duration,
-                'Instructions' => $request->Instructions,
-                'Notes' => $request->Notes,
-                'IsActive' => true,
-            ]);
-
-            // Update appointment status to completed
-            $appointment->update([
-                'Status' => 'Completed',
-                'Notes' => $request->Notes ?: $appointment->Notes
-            ]);
-
-            // Here you could trigger notifications (email, SMS, etc.)
-            // event(new PrescriptionIssued($prescription));
-
-            return redirect()->route('doctor.dashboard')
-                           ->with('success', 'Prescription issued successfully!');
-
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return redirect()->back()
-                           ->with('error', 'Appointment not found or does not belong to you.')
-                           ->withInput();
-        } catch (\Exception $e) {
-            \Log::error('Prescription creation failed: ' . $e->getMessage());
-
-            return redirect()->back()
-                           ->with('error', 'Failed to issue prescription. Please try again.')
-                           ->withInput();
-        }
+        return view('doctor.appointments', compact('appointments'));
     }
 
-    public function patientHistory($patientId)
+    public function createAppointment()
     {
-        try {
-            $doctor = Auth::user()->doctor;
-
-            $patient = Patient::where('PatientID', $patientId)->firstOrFail();
-
-            $appointments = Appointment::where('DoctorID', $doctor->DoctorID)
-                            ->where('PatientID', $patientId)
-                            ->with('prescription')
-                            ->orderBy('Date', 'desc')
-                            ->get();
-
-            $prescriptions = Prescription::where('DoctorID', $doctor->DoctorID)
-                            ->where('PatientID', $patientId)
-                            ->with('appointment')
-                            ->orderBy('IssueDate', 'desc')
-                            ->get();
-
-            return view('doctor.patient-history', compact('patient', 'appointments', 'prescriptions'));
-
-        } catch (\Exception $e) {
-            \Log::error('Patient history retrieval failed: ' . $e->getMessage());
-
-            return redirect()->back()
-                           ->with('error', 'Failed to load patient history.');
-        }
+        $patients = Patient::all();
+        return view('doctor.appointments.create', compact('patients'));
     }
 
-    public function updateAvailability(Request $request)
+    public function storeAppointment(Request $request)
     {
-        try {
-            $doctor = Auth::user()->doctor;
+        $request->validate([
+            'cPatientID' => 'required|exists:tblpatient,cPatientID',
+            'dAppointmentDateTime' => 'required|date',
+            'cPurpose' => 'required|string',
+        ]);
 
-            $validated = $request->validate([
-                'Availability' => 'nullable|array',
-                'IsActive' => 'boolean',
-            ]);
+        $doctor = $this->getDoctor();
 
-            $doctor->update($validated);
+        Appointment::create([
+            'cAppointmentID' => 'A-' . str_pad(Appointment::count() + 1, 4, '0', STR_PAD_LEFT),
+            'cPatientID' => $request->cPatientID,
+            'cDoctorID' => $doctor->cDoctorID,
+            'dAppointmentDateTime' => $request->dAppointmentDateTime,
+            'cPurpose' => $request->cPurpose,
+            'cStatus' => 'Scheduled',
+        ]);
 
-            return redirect()->back()
-                           ->with('success', 'Availability updated successfully.');
+        return redirect()->route('doctor.appointments')->with('success', 'Appointment created successfully!');
+    }
 
-        } catch (\Exception $e) {
-            \Log::error('Doctor availability update failed: ' . $e->getMessage());
+    public function prescriptions()
+    {
+        $doctor = $this->getDoctor();
+        $prescriptions = Prescription::where('cDoctorID', $doctor->cDoctorID)
+            ->with('patient')
+            ->orderBy('dPrescriptionDate', 'desc')
+            ->paginate(10);
 
-            return redirect()->back()
-                           ->with('error', 'Failed to update availability. Please try again.');
-        }
+        return view('doctor.prescriptions', compact('prescriptions'));
+    }
+
+    public function createPrescription()
+    {
+        $patients = Patient::all();
+        return view('doctor.prescriptions.create', compact('patients'));
+    }
+
+    public function storePrescription(Request $request)
+    {
+        $request->validate([
+            'cPatientID' => 'required|exists:tblpatient,cPatientID',
+            'dPrescriptionDate' => 'required|date',
+            'cMedication' => 'required|string',
+            'cDosage' => 'required|string',
+            'cInstructions' => 'required|string',
+        ]);
+
+        $doctor = $this->getDoctor();
+
+        Prescription::create([
+            'cPrescriptionID' => 'P-' . str_pad(Prescription::count() + 1, 4, '0', STR_PAD_LEFT),
+            'cPatientID' => $request->cPatientID,
+            'cDoctorID' => $doctor->cDoctorID,
+            'dPrescriptionDate' => $request->dPrescriptionDate,
+            'cMedication' => $request->cMedication,
+            'cDosage' => $request->cDosage,
+            'cInstructions' => $request->cInstructions,
+            'cStatus' => 'Issued',
+        ]);
+
+        return redirect()->route('doctor.prescriptions')->with('success', 'Prescription created successfully!');
     }
 }

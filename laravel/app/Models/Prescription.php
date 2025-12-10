@@ -4,51 +4,39 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Prescription extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'PrescriptionID';
+    protected $table = 'tblprescription';
+    protected $primaryKey = 'cPrescriptionID';
+    public $incrementing = false;
+    protected $keyType = 'string';
+    public $timestamps = true;
 
     protected $fillable = [
-        'AppointmentID', 'DoctorID', 'PatientID', 'IssueDate',
-        'MedicineName', 'Dosage', 'Frequency', 'Duration',
-        'Instructions', 'Notes', 'IsActive'
+        'cPrescriptionID',
+        'cPatientID',
+        'cDoctorID',
+        'cMedication',
+        'cDosage',
+        'cInstructions',
+        'dPrescriptionDate',
     ];
 
     protected $casts = [
-        'IssueDate' => 'date',
-        'IsActive' => 'boolean',
+        'dPrescriptionDate' => 'date'
     ];
 
-    // Relationship with Appointment
-    public function appointment()
+    public function patient(): BelongsTo
     {
-        return $this->belongsTo(Appointment::class, 'AppointmentID');
+        return $this->belongsTo(Patient::class, 'cPatientID', 'cPatientID');
     }
 
-    // Relationship with Doctor
-    public function doctor()
+    public function doctor(): BelongsTo
     {
-        return $this->belongsTo(Doctor::class, 'DoctorID');
-    }
-
-    // Relationship with Patient
-    public function patient()
-    {
-        return $this->belongsTo(Patient::class, 'PatientID');
-    }
-
-    // Scope for active prescriptions
-    public function scopeActive($query)
-    {
-        return $query->where('IsActive', true);
-    }
-
-    // Get formatted prescription
-    public function getFormattedPrescription()
-    {
-        return "{$this->MedicineName} - {$this->Dosage}, {$this->Frequency} for {$this->Duration}";
+        return $this->belongsTo(Doctor::class, 'cDoctorID', 'cDoctorID');
     }
 }
