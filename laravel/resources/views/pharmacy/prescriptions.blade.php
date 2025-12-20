@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('title', 'All Prescriptions')
 
 @section('header')
@@ -55,7 +54,7 @@
                                             {{ \Carbon\Carbon::parse($prescription->dIssueDate)->format('F j, Y') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                                 @switch($prescription->cStatus)
                                                     @case('Active')
                                                         bg-green-100 text-green-800

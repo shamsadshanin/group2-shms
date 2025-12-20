@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('title', 'Prescription Details')
 
 @section('content')
@@ -32,8 +31,8 @@
                     <h2 class="text-lg font-semibold text-gray-700 mb-2">Prescription Details</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-600">
                         <p><span class="font-medium">Issue Date:</span> {{ $prescription->dIssueDate ? $prescription->dIssueDate->format('F d, Y') : 'Not available' }}</p>
-                        <p><span class="font-medium">Status:</span> 
-                            <span class="px-3 py-1 text-sm font-semibold rounded-full 
+                        <p><span class="font-medium">Status:</span>
+                            <span class="px-3 py-1 text-sm font-semibold rounded-full
                                 @switch($prescription->cStatus)
                                     @case('Active') bg-blue-200 text-blue-800 @break
                                     @case('Dispensed') bg-green-200 text-green-800 @break
