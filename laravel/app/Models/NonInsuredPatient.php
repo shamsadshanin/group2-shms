@@ -2,31 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class NonInsuredPatient extends Model
 {
-    use HasFactory;
-
     protected $table = 'tblnoninsuredpatient';
-    protected $primaryKey = 'cPatientID';
+    protected $primaryKey = 'cPatientID'; // SQL অনুযায়ী PK
     public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = false;
 
     protected $fillable = [
         'cPatientID',
-        'dSubmissionDate',
-        'cApprovalStatus'
+        'cPaymentMethod',
     ];
 
-    protected $casts = [
-        'dSubmissionDate' => 'date'
-    ];
-
-    public function patient(): BelongsTo
+    public function patient()
     {
         return $this->belongsTo(Patient::class, 'cPatientID', 'cPatientID');
     }

@@ -4,9 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3fc7dea6-73be-4305-8a29-18ffb0f9c2bb" name="Changes" comment="fixed PharmacyController">
+    <list default="true" id="3fc7dea6-73be-4305-8a29-18ffb0f9c2bb" name="Changes" comment="fixed admin-billing create blade">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Http/Controllers/AdminController.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Http/Controllers/AdminController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Models/InsuredPatient.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/InsuredPatient.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Models/NonInsuredPatient.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/NonInsuredPatient.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Models/Patient.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/Patient.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/analytics.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/analytics.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/billing/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/billing/create.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/patients/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/patients/create.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/patients/edit.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/patients/edit.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/patients/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/patients/index.blade.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,21 +44,34 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/Shanin/Desktop/group2-shms-final/laravel/resources/views/admin/billing"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Shanin/Desktop/group2-shms-final/laravel/resources/views/admin/billing&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Shanin\Desktop\group2-shms-final\laravel\resources\views\admin\billing" />
     </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="group2-shms-final" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="group2-shms-final" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -84,7 +105,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765389038907</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="fixed admin-billing create blade">
+      <option name="closed" value="true" />
+      <created>1766207375258</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1766207375258</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -94,6 +123,7 @@
     <MESSAGE value="final push from shanin" />
     <MESSAGE value="fixed PatientController" />
     <MESSAGE value="fixed PharmacyController" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed PharmacyController" />
+    <MESSAGE value="fixed admin-billing create blade" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed admin-billing create blade" />
   </component>
 </project>

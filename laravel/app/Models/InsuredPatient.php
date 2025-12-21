@@ -4,30 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InsuredPatient extends Model
 {
     use HasFactory;
 
     protected $table = 'tblinsuredpatient';
-    protected $primaryKey = 'cPatientID';
+    protected $primaryKey = 'cInsuranceID'; // SQL অনুযায়ী PK হলো cInsuranceID
     public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = false;
 
     protected $fillable = [
+        'cInsuranceID',
         'cPatientID',
-        'cProviderName',
+        'cInsuranceCompany',
         'cPolicyNumber',
-        'nCoverageLimit'
     ];
 
-    protected $casts = [
-        'nCoverageLimit' => 'decimal:2'
-    ];
-
-    public function patient(): BelongsTo
+    public function patient()
     {
         return $this->belongsTo(Patient::class, 'cPatientID', 'cPatientID');
     }

@@ -72,4 +72,9 @@ class Patient extends Model
     {
         return $this->hasOne(NonInsuredPatient::class, 'cPatientID', 'cPatientID');
     }
+    public function insurance()
+    {
+        // Links tblpatient.cPatientID to tblinsuredpatient.cPatientID
+        return $this->hasOne(InsuredPatient::class, 'cPatientID', 'cPatientID');
+    }
 }

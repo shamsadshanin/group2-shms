@@ -56,10 +56,17 @@ class AdminController extends Controller
             ->orderBy('date', 'ASC')
             ->get();
 
+        // রেভিনিউ চার্টের জন্য ডাটা কুয়েরি
+        $revenueData = Billing::selectRaw('DATE(dBillingDate) as date, SUM(fAmount) as total')
+            ->where('cStatus', 'Paid') // শুধুমাত্র Paid বিলগুলো হিসেবে আসবে
+            ->where('dBillingDate', '>=', Carbon::now()->subDays(7)) // ৭ দিনের ডেটা
+            ->groupBy('date')
+            ->orderBy('date', 'ASC')
+            ->get();
+
+        // যদি গত ৭ দিনে কোনো ডেটা না থাকে, তবে চার্ট খালি দেখাবে না
         $revenueChartData = [
-            'labels' => $revenueData->pluck('date')->map(function ($date) {
-                return Carbon::parse($date)->format('M d');
-            }),
+            'labels' => $revenueData->pluck('date')->map(fn($date) => Carbon::parse($date)->format('M d')),
             'data' => $revenueData->pluck('total'),
         ];
 
@@ -119,7 +126,7 @@ class AdminController extends Controller
 
         return round($growth, 2);
     }
-    
+
     // Doctor Management
     public function doctors()
     {
@@ -187,41 +194,116 @@ class AdminController extends Controller
 
     public function createPatient()
     {
-        return view('admin.patients.create');
+        // সর্বশেষ পেশেন্ট আইডি খুঁজে বের করা
+        $lastPatient = Patient::orderBy('cPatientID', 'desc')->first();
+
+        if (!$lastPatient) {
+            $nextId = 'PT00001';
+        } else {
+            // আইডি থেকে নাম্বার অংশ আলাদা করে ১ যোগ করা
+            $number = (int) str_replace('PT', '', $lastPatient->cPatientID);
+            $nextId = 'PT' . str_pad($number + 1, 5, '0', STR_PAD_LEFT);
+        }
+
+        return view('admin.patients.create', compact('nextId'));
     }
 
+    // Patient Management - Store
     public function storePatient(Request $request)
     {
         $request->validate([
             'cPatientID' => 'required|string|max:10|unique:tblpatient,cPatientID',
-            'cName' => 'required|string|max:50',
-            'cEmail' => 'required|email|max:50|unique:tblpatient,cEmail',
-            'cPhone' => 'required|string|max:15',
+            'cName' => 'required|string|max:255',
+            'cEmail' => 'required|email|max:255|unique:users,email',
+            'cPhone' => 'required|string|max:20',
+            'nAge' => 'required|string',
+            'cGender' => 'required|string|in:Male,Female,Other',
+            'patient_type' => 'required|in:Insured,Non-Insured',
         ]);
 
-        Patient::create($request->all());
+        // ১. User তৈরি (পাসওয়ার্ড ডিফল্ট হিসেবে ফোন নম্বর দেওয়া হয়েছে)
+        $user = User::create([
+            'name' => $request->cName,
+            'email' => $request->cEmail,
+            'password' => Hash::make($request->cPhone),
+            'role' => 'patient',
+        ]);
 
-        return redirect()->route('admin.patients.index')->with('success', 'Patient created successfully.');
-    }
+        // ২. Patient তৈরি
+        $patient = Patient::create([
+            'cPatientID' => $request->cPatientID,
+            'cUserID' => $user->id,
+            'cName' => $request->cName,
+            'nAge' => $request->nAge,
+            'cGender' => $request->cGender,
+            'cEmail' => $request->cEmail,
+            'cAddress' => $request->cAddress ?? 'Not Provided',
+            'cPhone' => $request->cPhone,
+        ]);
 
-    public function editPatient($id)
-    {
-        $patient = Patient::findOrFail($id);
-        return view('admin.patients.edit', compact('patient'));
+        // ৩. ইনসিওরেন্স টাইপ অনুযায়ী ডাটা সেভ
+        if ($request->patient_type === 'Insured') {
+            \App\Models\InsuredPatient::create([
+                'cInsuranceID' => 'INS-' . rand(1000, 9999), // ইউনিক আইডি জেনারেশন
+                'cPatientID' => $patient->cPatientID,
+                'cInsuranceCompany' => $request->cInsuranceCompany ?? 'General Insurance',
+                'cPolicyNumber' => $request->cPolicyNumber ?? 'POL-' . rand(10000, 99999),
+            ]);
+        } else {
+            \App\Models\NonInsuredPatient::create([
+                'cPatientID' => $patient->cPatientID,
+                'cPaymentMethod' => 'Cash',
+            ]);
+        }
+
+        return redirect()->route('admin.patients.index')->with('success', 'Patient account and user record created successfully.');
     }
 
     public function updatePatient(Request $request, $id)
     {
+        $patient = Patient::findOrFail($id);
+        $user = User::findOrFail($patient->cUserID);
+
+        // ভ্যালিডেশন
         $request->validate([
             'cName' => 'required|string|max:50',
-            'cEmail' => 'required|email|max:50|unique:tblpatient,cEmail,' . $id . ',cPatientID',
+            'cEmail' => 'required|email|max:50|unique:users,email,' . $user->id,
             'cPhone' => 'required|string|max:15',
+            'nAge' => 'nullable|integer',
+            'cGender' => 'required|string',
         ]);
 
-        $patient = Patient::findOrFail($id);
-        $patient->update($request->all());
+        // ১. User টেবিল আপডেট
+        $user->update([
+            'name' => $request->cName,
+            'email' => $request->cEmail,
+        ]);
 
-        return redirect()->route('admin.patients.index')->with('success', 'Patient updated successfully.');
+        // ২. Patient টেবিল আপডেট (cPhone কলাম ব্যবহার করে)
+        $patient->update([
+            'cName' => $request->cName,
+            'cEmail' => $request->cEmail,
+            'cPhone' => $request->cPhone,
+            'nAge' => $request->nAge,
+            'cGender' => $request->cGender,
+        ]);
+
+        // ৩. ইনসিওরেন্স তথ্য আপডেট (যদি রোগী ইনসিওর্ড হয়)
+        if ($patient->insurance) {
+            $patient->insurance->update([
+                'cInsuranceCompany' => $request->cInsuranceCompany,
+                'cPolicyNumber' => $request->cPolicyNumber,
+            ]);
+        }
+
+        return redirect()->route('admin.patients.index')->with('success', 'Patient and insurance details updated successfully.');
+    }
+
+    public function editPatient($id)
+    {
+        // ইগার লোডিং ব্যবহার করে ইনসিওরেন্স তথ্যসহ পেশেন্ট খুঁজে বের করা
+        $patient = Patient::with('insurance')->findOrFail($id);
+        return view('admin.patients.edit', compact('patient'));
     }
 
     public function destroyPatient($id)
@@ -303,8 +385,24 @@ class AdminController extends Controller
 
     public function createBilling()
     {
-        $patients = Patient::all();
-        return view('admin.billing.create', compact('patients'));
+        // ইগার লোড ইন্সুইরেন্স
+        $patients = Patient::with('insurance')->get();
+
+        // অটো-জেনারেট ইনভয়েস আইডি (যেমন: INV-0009)
+        // ডাটাবেজের সর্বশেষ 'INV-' আইডি খুঁজে বের করা
+        $lastBilling = Billing::where('cBillingID', 'LIKE', 'INV-%')
+            ->orderBy('cBillingID', 'desc')
+            ->first();
+
+        if (!$lastBilling) {
+            $nextId = 'INV-0001';
+        } else {
+            // আইডি থেকে নাম্বার অংশ আলাদা করে ১ যোগ করা
+            $number = (int) str_replace('INV-', '', $lastBilling->cBillingID);
+            $nextId = 'INV-' . str_pad($number + 1, 4, '0', STR_PAD_LEFT);
+        }
+
+        return view('admin.billing.create', compact('patients', 'nextId'));
     }
 
     public function storeBilling(Request $request)
@@ -312,14 +410,37 @@ class AdminController extends Controller
         $request->validate([
             'cBillingID' => 'required|string|max:10|unique:tblbilling,cBillingID',
             'cPatientID' => 'required|string|exists:tblpatient,cPatientID',
-            'fAmount' => 'required|numeric',
+            'fAmount'    => 'required|numeric',
             'dBillingDate' => 'required|date',
-            'cStatus' => 'required|string|max:20',
+            'cStatus'    => 'required|string|max:20',
+            'tests'      => 'required|array|min:1',
+            'tests.*.name'   => 'required|string|max:255',
+            'tests.*.qty'    => 'required|integer|min:1',
+            'tests.*.amount' => 'required|numeric',
         ]);
 
-        Billing::create($request->all());
+        // 1. Create the main Billing record
+        $billing = Billing::create([
+            'cBillingID' => $request->cBillingID,
+            'cPatientID' => $request->cPatientID,
+            'fAmount'    => $request->fAmount,
+            'dBillingDate' => $request->dBillingDate,
+            'cStatus'    => $request->cStatus,
+        ]);
 
-        return redirect()->route('admin.billing.index')->with('success', 'Billing record created successfully.');
+        // 2. Create the Billing Details (Composite Attributes)
+        foreach ($request->tests as $test) {
+            // Assuming you have a BillingDetail model for tblbilling_details
+            \App\Models\BillingDetail::create([
+                'cBillingID' => $billing->cBillingID,
+                'cTestName'  => $test['name'],
+                'nQuantity'  => $test['qty'],
+                'fUnitPrice' => $test['amount'],
+                'fSubTotal'  => $test['qty'] * $test['amount'],
+            ]);
+        }
+
+        return redirect()->route('admin.billing.index')->with('success', 'Billing record and test details created successfully.');
     }
 
     public function editBilling(Billing $billing)
@@ -462,8 +583,27 @@ class AdminController extends Controller
 
     public function analytics()
     {
-        // Placeholder for analytics data
-        $analyticsData = [];
+        // ১. মোট পেশেন্ট সংখ্যা
+        $totalPatients = Patient::count();
+
+        // ২. মোট অ্যাপয়েন্টমেন্ট সংখ্যা
+        $totalAppointments = Appointment::count();
+
+        // ৩. মোট রেভিনিউ (শুধুমাত্র Paid বিলগুলো)
+        $totalRevenue = Billing::where('cStatus', 'Paid')->sum('fAmount');
+
+        // ৪. ইনসিওর্ড বনাম নন-ইনসিওর্ড পেশেন্ট এর হিসাব
+        $insuredCount = \App\Models\InsuredPatient::count();
+        $nonInsuredCount = \App\Models\NonInsuredPatient::count();
+
+        $analyticsData = [
+            'patients' => $totalPatients,
+            'appointments' => $totalAppointments,
+            'revenue' => number_format($totalRevenue, 2),
+            'insured' => $insuredCount,
+            'non_insured' => $nonInsuredCount
+        ];
+
         return view('admin.analytics', compact('analyticsData'));
     }
 
