@@ -47,13 +47,25 @@ Route::middleware(['auth', 'role:patient'])->prefix('patient')->name('patient.')
 // Doctor routes
 Route::middleware(['auth', 'role:doctor'])->prefix('doctor')->name('doctor.')->group(function () {
     Route::get('dashboard', [DoctorController::class, 'dashboard'])->name('dashboard');
+
+    // ... Existing Appointment & Prescription Routes ...
     Route::get('appointments', [DoctorController::class, 'appointments'])->name('appointments');
     Route::get('appointments/create', [DoctorController::class, 'createAppointment'])->name('appointments.create');
     Route::post('appointments', [DoctorController::class, 'storeAppointment'])->name('appointments.store');
+
     Route::get('prescriptions', [DoctorController::class, 'prescriptions'])->name('prescriptions');
     Route::get('prescriptions/create', [DoctorController::class, 'createPrescription'])->name('prescriptions.create');
     Route::post('prescriptions', [DoctorController::class, 'storePrescription'])->name('prescriptions.store');
-    Route::get('patients/{patient}/history', [PatientController::class, 'patientHistory'])->name('patients.history');
+    Route::get('prescriptions/{id}', [DoctorController::class, 'showPrescription'])->name('prescriptions.show');
+
+    // Patient History & Editing
+    Route::get('patients/{patient}/history', [DoctorController::class, 'patientHistory'])->name('patients.history');
+    Route::get('patients/{patient}/edit', [DoctorController::class, 'editPatient'])->name('patients.edit');
+    Route::put('patients/{patient}', [DoctorController::class, 'updatePatient'])->name('patients.update');
+
+    // Medical Records
+    Route::get('patients/{patient}/medical-record/create', [DoctorController::class, 'createMedicalRecord'])->name('medical-records.create');
+    Route::post('patients/{patient}/medical-record', [DoctorController::class, 'storeMedicalRecord'])->name('medical-records.store');
 });
 
 // Admin routes
@@ -75,6 +87,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('patients/{id}/edit', [AdminController::class, 'editPatient'])->name('patients.edit');
     Route::put('patients/{id}', [AdminController::class, 'updatePatient'])->name('patients.update');
     Route::delete('patients/{id}', [AdminController::class, 'destroyPatient'])->name('patients.destroy');
+    // Appointments Page
+    Route::get('appointments', [PatientController::class, 'appointments'])->name('appointments');
+
+    // API Routes for AJAX (View & Cancel)
+    Route::get('api/appointments/{id}', [PatientController::class, 'showAppointmentApi']);
+    Route::post('api/appointments/{id}/cancel', [PatientController::class, 'cancelAppointmentApi']);
 
     // Appointment management
     Route::get('appointments', [AdminController::class, 'appointments'])->name('appointments.index');
@@ -122,6 +140,8 @@ Route::middleware(['auth', 'role:lab'])->prefix('lab')->name('lab.')->group(func
     Route::get('tests/create', [LabTechnicianController::class, 'create'])->name('tests.create');
     Route::post('tests', [LabTechnicianController::class, 'store'])->name('tests.store');
     Route::get('tests/{cLabTestID}', [LabTechnicianController::class, 'show'])->name('tests.show');
+    // In web.php under lab routes
+    Route::patch('tests/{id}/accept', [LabTechnicianController::class, 'acceptTest'])->name('tests.accept');
 });
 
 // Pharmacy routes

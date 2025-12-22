@@ -9,49 +9,47 @@ class Appointment extends Model
 {
     use HasFactory;
 
-    protected $table = 'tblappointment';
+    // Updated Table Name based on Schema
+    protected $table = 'Appointment';
 
-    protected $primaryKey = 'cAppointmentID';
+    // Updated Primary Key
+    protected $primaryKey = 'AppointmentID';
 
+    // ID is a string (e.g., A-0001), so incrementing is false
     public $incrementing = false;
 
     protected $keyType = 'string';
 
+    // Updated Fillable columns to match SQL Schema
     protected $fillable = [
-        'cAppointmentID',
-        'cPatientID',
-        'cDoctorID',
-        'dAppointmentDateTime',
-        'cPurpose', // Added cPurpose
-        'cStatus',
+        'AppointmentID',
+        'PatientID',
+        'DoctorID',
+        'Date',
+        'Time',
+        'Purpose',
+        'Status',
     ];
 
+    // Updated Casts
     protected $casts = [
-        'dAppointmentDateTime' => 'datetime',
+        'Date' => 'date',
+        // 'Time' is usually best kept as string in Laravel unless you need Carbon instances
     ];
 
+    /**
+     * Relationship: An Appointment belongs to a Patient.
+     */
     public function patient()
     {
-        return $this->belongsTo(Patient::class, 'cPatientID', 'cPatientID');
+        return $this->belongsTo(Patient::class, 'PatientID', 'PatientID');
     }
 
+    /**
+     * Relationship: An Appointment belongs to a Doctor.
+     */
     public function doctor()
     {
-        return $this->belongsTo(Doctor::class, 'cDoctorID', 'cDoctorID');
-    }
-
-    public function labTests()
-    {
-        return $this->hasMany(LabTest::class, 'cAppointmentID', 'cAppointmentID');
-    }
-
-    public function prescription()
-    {
-        return $this->hasOne(Prescription::class, 'cAppointmentID', 'cAppointmentID');
-    }
-
-    public function symptomInputs()
-    {
-        return $this->hasMany(SymptomInput::class, 'cAppointmentID', 'cAppointmentID');
+        return $this->belongsTo(Doctor::class, 'DoctorID', 'DoctorID');
     }
 }

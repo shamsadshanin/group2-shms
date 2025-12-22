@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Patients')
+@section('title', 'Patients Directory')
 
 @section('header')
     <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-        {{ __('Patients') }}
+        {{ __('Patients Directory') }}
     </h2>
 @endsection
 
@@ -13,9 +13,12 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
-                    <div class="flex justify-end mb-4">
-                        <a href="{{ route('reception.patients.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
-                            Register New Patient
+
+                    {{-- Action Bar --}}
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">Registered Patients</h3>
+                        <a href="{{ route('reception.patients.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-sm transition">
+                            <i class="fas fa-user-plus mr-2"></i> Register New Patient
                         </a>
                     </div>
 
@@ -42,33 +45,53 @@
                                         Phone
                                     </th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Date of Birth
+                                        Age / Gender
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        City
                                     </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($patients as $patient)
-                                    <tr>
+                                    <tr class="hover:bg-gray-50">
+                                        {{-- Patient ID --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ $patient->cPatientID }}
+                                            {{ $patient->PatientID }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $patient->cName }}
+
+                                        {{-- Name --}}
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                                            {{ $patient->First_Name }} {{ $patient->Last_Name }}
                                         </td>
+
+                                        {{-- Email --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $patient->cEmail }}
+                                            {{ $patient->Email ?? 'N/A' }}
                                         </td>
+
+                                        {{-- Phone (Fetched from Relationship) --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $patient->cPhone }}
+                                            {{ $patient->contactNumbers->first()->Contact_Number ?? 'N/A' }}
                                         </td>
+
+                                        {{-- Age & Gender (Replaces Date of Birth) --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ \Carbon\Carbon::parse($patient->dDOB)->format('F j, Y') }}
+                                            {{ $patient->Age }} / {{ $patient->Gender }}
+                                        </td>
+
+                                        {{-- City (Address) --}}
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ $patient->City }}
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                                            No patients found.
+                                        <td colspan="6" class="px-6 py-10 whitespace-nowrap text-sm text-gray-500 text-center">
+                                            <div class="flex flex-col items-center">
+                                                <i class="fas fa-users-slash fa-2x mb-2 text-gray-300"></i>
+                                                <p>No patients found.</p>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforelse

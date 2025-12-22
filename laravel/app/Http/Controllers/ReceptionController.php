@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Patient;
+use App\Models\PatientNumber; // New Model for phone numbers
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ReceptionController extends Controller
 {
@@ -19,27 +20,33 @@ class ReceptionController extends Controller
     }
 
     public function dashboard()
-    {
-        $appointments = Appointment::with('patient', 'doctor')
-            ->where('cStatus', 'Scheduled')
-            ->orderBy('dAppointmentDateTime', 'asc')
-            ->get();
+        {
+            // Matches SQL Schema: Status, Date, Time
+            $appointments = Appointment::with(['patient', 'doctor'])
+                ->where('Status', 'Scheduled')
+                ->orderBy('Date', 'asc')
+                ->orderBy('Time', 'asc')
+                ->get();
 
-        return view('reception.dashboard', compact('appointments'));
-    }
+            return view('reception.dashboard', compact('appointments'));
+        }
 
-    public function checkIn(Appointment $appointment)
-    {
-        $appointment->cStatus = 'Checked-in';
-        $appointment->save();
+        public function checkIn($id)
+        {
+            // Find using AppointmentID
+            $appointment = Appointment::where('AppointmentID', $id)->firstOrFail();
 
-        return redirect()->route('reception.dashboard')->with('success', 'Patient checked in successfully.');
-    }
+            $appointment->Status = 'Checked-in';
+            $appointment->save();
+
+            return redirect()->route('reception.dashboard')->with('success', 'Patient checked in successfully.');
+        }
 
     public function appointments()
     {
-        $appointments = Appointment::with('patient', 'doctor')
-            ->orderBy('dAppointmentDateTime', 'desc')
+        $appointments = Appointment::with(['patient', 'doctor'])
+            ->orderBy('Date', 'desc')
+            ->orderBy('Time', 'desc')
             ->paginate(15);
 
         return view('reception.appointments', compact('appointments'));
@@ -47,85 +54,98 @@ class ReceptionController extends Controller
 
     public function patients()
     {
-        $patients = Patient::orderBy('cName', 'asc')->paginate(15);
-
+        $patients = Patient::orderBy('First_Name', 'asc')->paginate(15);
         return view('reception.patients', compact('patients'));
     }
 
-    /**
-     * Show the form for creating a new patient.
-     *
-     * @return \Illuminate\View\View
-     */
     public function createPatient()
     {
         return view('reception.patients.create');
     }
 
-    /**
-     * Store a newly created patient in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function storePatient(Request $request)
-    {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['required', 'string', 'max:20'],
-            'nAge' => ['required', 'integer', 'min:0'],
-            'gender' => ['required', 'string', 'in:Male,Female,Other'],
-            'address' => ['required', 'string', 'max:255'],
-        ]);
+        {
+            // 1. Validation
+            $request->validate([
+                // Basic Info
+                'First_Name' => 'required|string|max:255',
+                'Last_Name'  => 'required|string|max:255',
+                'Email'      => 'nullable|email|unique:users,email',
+                'Contact_Number' => 'required|string|max:20',
+                'Age'        => 'required|integer|min:0',
+                'Gender'     => 'required|string|in:Male,Female,Other',
+                'Street'     => 'required|string',
+                'City'       => 'required|string',
+                'Zip'        => 'required|string',
 
-        $email = $request->email;
-        if (!$email) {
-            $baseEmail = strtolower(str_replace(' ', '.', $request->name));
-            $generatedEmail = $baseEmail . '@clinic.com';
-            $counter = 1;
-            // Ensure generated email is unique
-            while (User::where('email', $generatedEmail)->exists()) {
-                $generatedEmail = $baseEmail . $counter . '@clinic.com';
-                $counter++;
+                // Insurance Logic
+                'PatientType'    => 'required|in:General,Insured',
+                'Provider_Name'  => 'required_if:PatientType,Insured',
+                'Policy_Number'  => 'required_if:PatientType,Insured',
+                'Coverage_Limit' => 'required_if:PatientType,Insured|numeric',
+            ]);
+
+            $email = $request->Email;
+            if (!$email) {
+                $baseEmail = strtolower($request->First_Name . '.' . $request->Last_Name);
+                $generatedEmail = $baseEmail . '@clinic.com';
+                $counter = 1;
+                while (User::where('email', $generatedEmail)->exists()) {
+                    $generatedEmail = $baseEmail . $counter . '@clinic.com';
+                    $counter++;
+                }
+                $email = $generatedEmail;
             }
-            $email = $generatedEmail;
+
+            DB::transaction(function () use ($request, $email) {
+                // A. Create User
+                $user = User::create([
+                    'name'     => $request->First_Name . ' ' . $request->Last_Name,
+                    'email'    => $email,
+                    'password' => Hash::make('password123'),
+                    'role'     => 'patient',
+                ]);
+
+                // B. Generate Patient ID (PTXXXXX)
+                $count = Patient::count() + 1;
+                $patientID = 'PT' . str_pad($count, 5, '0', STR_PAD_LEFT);
+
+                // C. Create Patient Record
+                $patient = Patient::create([
+                    'PatientID'  => $patientID,
+                    'user_id'    => $user->id,
+                    'First_Name' => $request->First_Name,
+                    'Last_Name'  => $request->Last_Name,
+                    'Age'        => $request->Age,
+                    'Gender'     => $request->Gender,
+                    'Email'      => $email,
+                    'Street'     => $request->Street,
+                    'City'       => $request->City,
+                    'Zip'        => $request->Zip,
+                ]);
+
+                // D. Save Phone Number
+                PatientNumber::create([
+                    'PatientID'      => $patientID,
+                    'Contact_Number' => $request->Contact_Number,
+                ]);
+
+                // E. IF INSURED -> Save to Insured_Patient Table
+                if ($request->PatientType === 'Insured') {
+                    // Generate InsPatientID (INS-XXXX)
+                    $insCount = \App\Models\InsuredPatient::count() + 1;
+                    $insID = 'INS-' . str_pad($insCount, 4, '0', STR_PAD_LEFT);
+
+                    \App\Models\InsuredPatient::create([
+                        'InsPatientID'   => $insID,
+                        'PatientID'      => $patientID,
+                        'Provider_Name'  => $request->Provider_Name,
+                        'Policy_Number'  => $request->Policy_Number,
+                        'Coverage_Limit' => $request->Coverage_Limit,
+                    ]);
+                }
+            });
+
+            return redirect()->route('reception.patients')->with('success', 'Patient registered successfully.');
         }
-
-        // Create a new User
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $email,
-            'password' => Hash::make(Str::random(12)), // Generate a random password
-            'role' => 'patient',
-        ]);
-
-        // Create a new Patient
-        Patient::create([
-            'cPatientID' => $this->generatePatientId(),
-            'cUserID' => $user->id,
-            'cName' => $request->name,
-            'cAddress' => $request->address,
-            'cPhone' => $request->phone,
-            'cEmail' => $email,
-            'nAge' => $request->nAge,
-            'cGender' => $request->gender,
-        ]);
-
-        return redirect()->route('reception.patients')->with('success', 'Patient registered successfully.');
-    }
-
-    /**
-     * Generate a unique Patient ID.
-     *
-     * @return string
-     */
-    private function generatePatientId()
-    {
-        do {
-            $id = 'P-' . str_pad(random_int(1, 99999), 5, '0', STR_PAD_LEFT);
-        } while (Patient::where('cPatientID', $id)->exists());
-
-        return $id;
-    }
 }

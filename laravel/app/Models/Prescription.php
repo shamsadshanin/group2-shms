@@ -4,39 +4,40 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Prescription extends Model
 {
     use HasFactory;
 
-    protected $table = 'tblprescription';
-    protected $primaryKey = 'cPrescriptionID';
+    protected $table = 'Prescription';
+    protected $primaryKey = 'PrescriptionID';
     public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = true;
+
+    // FIX: Disable Timestamps (created_at, updated_at)
+    public $timestamps = false;
 
     protected $fillable = [
-        'cPrescriptionID',
-        'cPatientID',
-        'cDoctorID',
-        'cMedication',
-        'cDosage',
-        'cInstructions',
-        'dPrescriptionDate',
+        'PrescriptionID',
+        'IssueDate',
+        'PatientID',
+        'DoctorID',
+        // 'Status', // REMOVED THIS
     ];
 
-    protected $casts = [
-        'dPrescriptionDate' => 'date'
-    ];
-
-    public function patient(): BelongsTo
+    public function patient()
     {
-        return $this->belongsTo(Patient::class, 'cPatientID', 'cPatientID');
+        return $this->belongsTo(Patient::class, 'PatientID', 'PatientID');
     }
 
-    public function doctor(): BelongsTo
+    public function doctor()
     {
-        return $this->belongsTo(Doctor::class, 'cDoctorID', 'cDoctorID');
+        return $this->belongsTo(Doctor::class, 'DoctorID', 'DoctorID');
     }
+
+    public function medicines()
+        {
+            // Relationship to the child table 'Prescription_Medicine'
+            return $this->hasMany(PrescriptionMedicine::class, 'PrescriptionID', 'PrescriptionID');
+        }
 }

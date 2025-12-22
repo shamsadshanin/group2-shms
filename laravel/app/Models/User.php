@@ -48,23 +48,21 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the profile associated with the user.
+     * Get the patient record associated with the user.
+     * Relies on the 'user_id' foreign key in the Patient table.
      */
-    public function profile()
+    public function patient()
     {
-        return match ($this->role) {
-            'doctor' => $this->hasOne(Doctor::class, 'cEmail', 'email'),
-            'patient' => $this->hasOne(Patient::class, 'cEmail', 'email'),
-            default => $this->hasOne(User::class, 'id', 'id')->where('id', -1), // Dummy relationship
-        };
+        return $this->hasOne(Patient::class, 'user_id', 'id');
     }
 
     /**
      * Get the doctor record associated with the user.
+     * Doctors are linked via Email in the new schema (or user_id if you added it, but standard schema used Email).
      */
     public function doctor()
     {
-        return $this->hasOne(Doctor::class, 'cEmail', 'email');
+        return $this->hasOne(Doctor::class, 'Email', 'email');
     }
 
     /**
@@ -72,7 +70,41 @@ class User extends Authenticatable
      */
     public function labTechnician()
     {
-        return $this->hasOne(LabTechnician::class, 'cEmail', 'email');
+        // Assuming Lab_Technician table uses 'Email' column
+        return $this->hasOne(LabTechnician::class, 'Email', 'email');
+    }
+
+    /**
+     * Get the pharmacist record associated with the user.
+     */
+    public function pharmacist()
+    {
+        // Assuming Pharmacist table uses 'Email' column
+        return $this->hasOne(Pharmacist::class, 'Email', 'email');
+    }
+
+    /**
+     * Get the receptionist record associated with the user.
+     */
+    public function receptionist()
+    {
+        // Assuming Receptionist table uses 'Email' column
+        return $this->hasOne(Receptionist::class, 'Email', 'email');
+    }
+
+    /**
+     * Dynamic Accessor: Get the profile associated with the user.
+     */
+    public function getProfileAttribute()
+    {
+        return match ($this->role) {
+            'doctor' => $this->doctor,
+            'patient' => $this->patient,
+            'lab' => $this->labTechnician,
+            'pharmacy' => $this->pharmacist,
+            'reception' => $this->receptionist,
+            default => null,
+        };
     }
 
     /**
@@ -89,13 +121,5 @@ class User extends Authenticatable
     public function hasAnyRole(array $roles): bool
     {
         return in_array($this->role, $roles);
-    }
-
-    /**
-     * Check if user has all of the given roles.
-     */
-    public function hasAllRoles(array $roles): bool
-    {
-        return count(array_intersect($roles, [$this->role])) === count($roles);
     }
 }

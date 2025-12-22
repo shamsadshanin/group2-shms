@@ -6,12 +6,16 @@
         {{ __('Pharmacy Dashboard') }}
     </h2>
 @endsection
+
 @section('content')
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Active Prescriptions</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">Recent Prescriptions</h3>
+
+                    </div>
 
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -36,27 +40,36 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($prescriptions as $prescription)
-                                    <tr>
+                                    <tr class="hover:bg-gray-50">
+                                        {{-- PrescriptionID --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ $prescription->cPrescriptionID }}
+                                            {{ $prescription->PrescriptionID }}
                                         </td>
+
+                                        {{-- Patient Name --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $prescription->patient->cName }}
+                                            {{ $prescription->patient->First_Name ?? 'N/A' }} {{ $prescription->patient->Last_Name ?? '' }}
                                         </td>
+
+                                        {{-- Doctor Name --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $prescription->doctor->cName }}
+                                            Dr. {{ $prescription->doctor->First_Name ?? 'N/A' }} {{ $prescription->doctor->Last_Name ?? '' }}
                                         </td>
+
+                                        {{-- Issue Date --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ \Carbon\Carbon::parse($prescription->dIssueDate)->format('F j, Y') }}
+                                            {{ \Carbon\Carbon::parse($prescription->IssueDate)->format('F j, Y') }}
                                         </td>
+
+                                        {{-- View Action --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="{{ route('pharmacy.prescription-detail', $prescription->cPrescriptionID) }}" class="text-indigo-600 hover:text-indigo-900">View</a>
+                                            <a href="{{ route('pharmacy.prescription-detail', $prescription->PrescriptionID) }}" class="text-indigo-600 hover:text-indigo-900 font-bold">View</a>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
                                         <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                                            No active prescriptions found.
+                                            No prescriptions found.
                                         </td>
                                     </tr>
                                 @endforelse

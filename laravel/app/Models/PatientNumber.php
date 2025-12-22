@@ -5,27 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class InsuredPatient extends Model
+class PatientNumber extends Model
 {
     use HasFactory;
 
-    // Matches SQL Table Name
-    protected $table = 'insured_patient';
+    // Matches SQL Table
+    protected $table = 'Patient_Number';
 
-    // Primary Key (from SQL)
-    protected $primaryKey = 'InsPatientID';
+    // This table usually doesn't have a standard 'id' primary key
+    // It's a composite of PatientID + Contact_Number, so we disable standard PK handling
+    protected $primaryKey = null;
     public $incrementing = false;
-    protected $keyType = 'string';
 
-    // --- CRITICAL: SQL table has no created_at/updated_at columns ---
     public $timestamps = false;
 
     protected $fillable = [
-        'InsPatientID',
         'PatientID',
-        'Provider_Name',
-        'Policy_Number',
-        'Coverage_Limit'
+        'Contact_Number',
     ];
 
     public function patient()

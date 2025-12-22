@@ -27,17 +27,34 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($billings as $billing)
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $billing->patient->user->name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ number_format($billing->nTotalAmount, 2) }}</td>
+                        {{-- Patient Name (First_Name + Last_Name) --}}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ $billing->patient->First_Name ?? 'Unknown' }} {{ $billing->patient->Last_Name ?? '' }}
+                        </td>
+
+                        {{-- Total Amount --}}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${{ number_format($billing->Total_Amount, 2) }}
+                        </td>
+
+                        {{-- Payment Status with Colors --}}
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {{ $billing->cPaymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                {{ $billing->cPaymentStatus }}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                {{ $billing->Payment_Status === 'Paid' ? 'bg-green-100 text-green-800' : '' }}
+                                {{ $billing->Payment_Status === 'Unpaid' ? 'bg-red-100 text-red-800' : '' }}
+                                {{ $billing->Payment_Status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : '' }}">
+                                {{ $billing->Payment_Status }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $billing->dBillDate }}</td>
+
+                        {{-- Issue Date --}}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ \Carbon\Carbon::parse($billing->IssueDate)->format('M d, Y') }}
+                        </td>
+
+                        {{-- Actions (Using InvoicedID) --}}
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="#" class="text-blue-600 hover:text-blue-900">View</a>
+                            <a href="{{ route('admin.billing.edit', $billing->InvoicedID) }}" class="text-blue-600 hover:text-blue-900">View/Edit</a>
                         </td>
                     </tr>
                     @empty

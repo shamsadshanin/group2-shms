@@ -4,77 +4,77 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable; // If using as User, otherwise Model
 
 class Patient extends Model
 {
     use HasFactory;
 
-    protected $table = 'tblpatient';
-
-    protected $primaryKey = 'cPatientID';
-
+    protected $table = 'Patient';
+    protected $primaryKey = 'PatientID';
     public $incrementing = false;
-
     protected $keyType = 'string';
 
+    // Schema has no created_at/updated_at columns in Patient table?
+    // Checking SQL: "created_at" timestamp NULL DEFAULT NULL. Yes it has.
+    public $timestamps = true;
+
     protected $fillable = [
-        'cPatientID',
-        'cUserID',
-        'cName',
-        'nAge',
-        'cGender',
-        'cEmail',
-        'cAddress',
-        'cPhone',
+        'PatientID',
+        'user_id',
+        'First_Name',
+        'Last_Name',
+        'Age',
+        'Gender',
+        'Email',
+        'Street',
+        'City',
+        'Zip'
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'cUserID');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     public function appointments()
     {
-        return $this->hasMany(Appointment::class, 'cPatientID', 'cPatientID');
+        return $this->hasMany(Appointment::class, 'PatientID', 'PatientID');
     }
 
     public function prescriptions()
     {
-        return $this->hasMany(Prescription::class, 'cPatientID', 'cPatientID');
+        return $this->hasMany(Prescription::class, 'PatientID', 'PatientID');
     }
 
     public function medicalRecords()
     {
-        return $this->hasMany(MedicalRecord::class, 'cPatientID', 'cPatientID');
-    }
-
-    public function labTests()
-    {
-        return $this->hasMany(LabTest::class, 'cPatientID', 'cPatientID');
+        // Map to Medical_Record table
+        return $this->hasMany(MedicalRecord::class, 'PatientID', 'PatientID');
     }
 
     public function billings()
     {
-        return $this->hasMany(Billing::class, 'cPatientID', 'cPatientID');
+        // Map to Billing table
+        return $this->hasMany(Billing::class, 'PatientID', 'PatientID');
     }
 
-    public function symptomInputs()
+    public function contactNumbers()
     {
-        return $this->hasMany(SymptomInput::class, 'cPatientID', 'cPatientID');
+        return $this->hasMany(PatientNumber::class, 'PatientID', 'PatientID');
     }
 
-    public function insuredPatient()
+    // Helper for Name
+    public function getFullNameAttribute()
     {
-        return $this->hasOne(InsuredPatient::class, 'cPatientID', 'cPatientID');
+        return "{$this->First_Name} {$this->Last_Name}";
     }
-
-    public function nonInsuredPatient()
+/**
+     * FIX: Add this relationship to solve the error.
+     * Maps to the 'insured_patient' table.
+     */
+    public function insured_patient()
     {
-        return $this->hasOne(NonInsuredPatient::class, 'cPatientID', 'cPatientID');
-    }
-    public function insurance()
-    {
-        // Links tblpatient.cPatientID to tblinsuredpatient.cPatientID
-        return $this->hasOne(InsuredPatient::class, 'cPatientID', 'cPatientID');
+        return $this->hasOne(InsuredPatient::class, 'PatientID', 'PatientID');
     }
 }

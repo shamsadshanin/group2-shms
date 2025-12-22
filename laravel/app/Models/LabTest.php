@@ -4,37 +4,36 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LabTest extends Model
 {
     use HasFactory;
 
-    protected $table = 'tbllabtest';
-    protected $primaryKey = 'cLabTestID';
+    // Mapping to SQL table 'Investigation'
+    protected $table = 'Investigation';
+    protected $primaryKey = 'InvestigationID';
+
     public $incrementing = false;
     protected $keyType = 'string';
+    public $timestamps = false;
 
     protected $fillable = [
-        'cLabTestID',
-        'cPatientID',
-        'cLabTechnicianID',
-        'cTestName',
-        'dTestDate',
-        'cStatus'
+        'InvestigationID',
+        'PatientID',
+        'StaffID',
+        'Test',
+        'TestType',
+        'Result_Summary',
+        'DigitalReport'
     ];
 
-    protected $casts = [
-        'dTestDate' => 'datetime'
-    ];
-
-    public function patient(): BelongsTo
+    public function patient()
     {
-        return $this->belongsTo(Patient::class, 'cPatientID', 'cPatientID');
+        return $this->belongsTo(Patient::class, 'PatientID', 'PatientID');
     }
 
-    public function labTechnician(): BelongsTo
+    public function technician()
     {
-        return $this->belongsTo(LabTechnician::class, 'cLabTechnicianID', 'cLabTechnicianID');
+        return $this->belongsTo(LabTechnician::class, 'StaffID', 'StaffID');
     }
 }

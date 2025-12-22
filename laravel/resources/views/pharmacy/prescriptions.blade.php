@@ -6,6 +6,9 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('All Prescriptions') }}
         </h2>
+        <a href="{{ route('pharmacy.prescriptions.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow">
+            Create New
+        </a>
     </div>
 @endsection
 
@@ -30,9 +33,7 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Issue Date
                                     </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
-                                    </th>
+                                    {{-- Status Column Removed (Not in SQL) --}}
                                     <th scope="col" class="relative px-6 py-3">
                                         <span class="sr-only">View</span>
                                     </th>
@@ -40,52 +41,50 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($prescriptions as $prescription)
-                                    <tr>
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        {{-- Prescription ID --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ $prescription->cPrescriptionID }}
+                                            {{ $prescription->PrescriptionID }}
                                         </td>
+
+                                        {{-- Patient Name --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $prescription->patient->cName }}
+                                            {{ $prescription->patient->First_Name ?? 'Unknown' }} {{ $prescription->patient->Last_Name ?? '' }}
                                         </td>
+
+                                        {{-- Doctor Name --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $prescription->doctor->cName }}
+                                            Dr. {{ $prescription->doctor->First_Name ?? 'Unknown' }} {{ $prescription->doctor->Last_Name ?? '' }}
                                         </td>
+
+                                        {{-- Issue Date --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ \Carbon\Carbon::parse($prescription->dIssueDate)->format('F j, Y') }}
+                                            {{ \Carbon\Carbon::parse($prescription->IssueDate)->format('F j, Y') }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                @switch($prescription->cStatus)
-                                                    @case('Active')
-                                                        bg-green-100 text-green-800
-                                                        @break
-                                                    @case('Dispensed')
-                                                        bg-blue-100 text-blue-800
-                                                        @break
-                                                    @case('Collected')
-                                                        bg-gray-100 text-gray-800
-                                                        @break
-                                                    @default
-                                                        bg-gray-100 text-gray-800
-                                                @endswitch
-                                            ">
-                                                {{ $prescription->cStatus }}
-                                            </span>
-                                        </td>
+
+                                        {{-- View Action --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="{{ route('pharmacy.prescription-detail', $prescription->cPrescriptionID) }}" class="text-indigo-600 hover:text-indigo-900">View</a>
+                                            <a href="{{ route('pharmacy.prescription-detail', $prescription->PrescriptionID) }}" class="text-indigo-600 hover:text-indigo-900 font-bold">View</a>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                                            No prescriptions found.
+                                        <td colspan="5" class="px-6 py-10 whitespace-nowrap text-sm text-gray-500 text-center">
+                                            <div class="flex flex-col items-center">
+                                                <i class="fas fa-prescription-bottle-alt fa-2x mb-2 text-gray-300"></i>
+                                                <p>No prescriptions found.</p>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
+
+                    {{-- Pagination (if you implement it in controller) --}}
+                    {{-- <div class="mt-4">
+                        {{ $prescriptions->links() }}
+                    </div> --}}
                 </div>
             </div>
         </div>

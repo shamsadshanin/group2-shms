@@ -9,24 +9,37 @@ class Billing extends Model
 {
     use HasFactory;
 
-    protected $table = 'tblbilling';
-    protected $primaryKey = 'cBillingID';
+    protected $table = 'Billing';
+
+    protected $primaryKey = 'InvoicedID';
+
     public $incrementing = false;
     protected $keyType = 'string';
 
+    // FIX: Disable automatic timestamps
+    public $timestamps = false;
+
     protected $fillable = [
-        'cBillingID',
-        'cPatientID',
-        'fAmount',
-        'dBillingDate',
-        'cStatus',
+        'InvoicedID',
+        'PatientID',
+        'Total_Amount',
+        'IssueDate',
+        'Payment_Status',
     ];
 
     /**
-     * Get the patient that owns the billing record.
+     * Relationship: Get the patient that owns the billing record.
      */
     public function patient()
     {
-        return $this->belongsTo(Patient::class, 'cPatientID', 'cPatientID');
+        return $this->belongsTo(Patient::class, 'PatientID', 'PatientID');
+    }
+
+    /**
+     * Relationship: Get the tests/items associated with this billing record.
+     */
+    public function tests()
+    {
+        return $this->hasMany(BillingTest::class, 'InvoicedID', 'InvoicedID');
     }
 }

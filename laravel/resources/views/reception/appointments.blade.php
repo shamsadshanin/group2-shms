@@ -33,36 +33,38 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($appointments as $appointment)
-                                    <tr>
+                                    <tr class="hover:bg-gray-50">
+                                        {{-- Patient Name --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ $appointment->patient?->cName ?? 'N/A' }}
+                                            {{ $appointment->patient->First_Name ?? 'Unknown' }} {{ $appointment->patient->Last_Name ?? '' }}
                                         </td>
+
+                                        {{-- Doctor Name --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $appointment->doctor?->cName ?? 'N/A' }}
+                                            Dr. {{ $appointment->doctor->First_Name ?? 'Unknown' }} {{ $appointment->doctor->Last_Name ?? '' }}
                                         </td>
+
+                                        {{-- Date & Time (FIXED: Parsed separately) --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ \Carbon\Carbon::parse($appointment->dAppointmentDateTime)->format('F j, Y, g:i a') }}
+                                            <div class="font-medium text-gray-900">
+                                                {{ \Carbon\Carbon::parse($appointment->Date)->format('F j, Y') }}
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                {{ \Carbon\Carbon::parse($appointment->Time)->format('g:i a') }}
+                                            </div>
                                         </td>
+
+                                        {{-- Status --}}
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                @switch($appointment->cStatus)
-                                                    @case('Scheduled')
-                                                        bg-blue-100 text-blue-800
-                                                        @break
-                                                    @case('Checked-in')
-                                                        bg-yellow-100 text-yellow-800
-                                                        @break
-                                                    @case('Completed')
-                                                        bg-green-100 text-green-800
-                                                        @break
-                                                    @case('Cancelled')
-                                                        bg-red-100 text-red-800
-                                                        @break
-                                                    @default
-                                                        bg-gray-100 text-gray-800
-                                                @endswitch
-                                            ">
-                                                {{ $appointment->cStatus }}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                                @switch($appointment->Status)
+                                                    @case('Scheduled') bg-blue-100 text-blue-800 @break
+                                                    @case('Checked-in') bg-yellow-100 text-yellow-800 @break
+                                                    @case('Completed') bg-green-100 text-green-800 @break
+                                                    @case('Cancelled') bg-red-100 text-red-800 @break
+                                                    @default bg-gray-100 text-gray-800
+                                                @endswitch">
+                                                {{ $appointment->Status }}
                                             </span>
                                         </td>
                                     </tr>

@@ -4,39 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SymptomInput extends Model
 {
     use HasFactory;
 
-    protected $table = 'tblsymptominput';
-    protected $primaryKey = 'cInputID';
+    protected $table = 'Symptom_Input';
+    protected $primaryKey = 'InputID';
     public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = false;
+    public $timestamps = false; // Based on your SQL
 
     protected $fillable = [
-        'cInputID',
-        'cPatientID',
-        'cDescription',
-        'dDate',
-        'dTimestamp'
+        'InputID',
+        'PatientID',
+        'Description',
+        'InputDate'
     ];
 
-    protected $casts = [
-        'dDate' => 'date',
-        'dTimestamp' => 'datetime'
-    ];
-
-    public function patient(): BelongsTo
+    public function disease()
     {
-        return $this->belongsTo(Patient::class, 'cPatientID', 'cPatientID');
-    }
-
-    public function symptomResponses(): HasMany
-    {
-        return $this->hasMany(SymptomResponse::class, 'cInputID', 'cInputID');
+        // One Input has One Prediction
+        return $this->hasOne(DiseasePrediction::class, 'InputID', 'InputID');
     }
 }

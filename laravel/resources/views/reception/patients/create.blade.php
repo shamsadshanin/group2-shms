@@ -13,76 +13,105 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
-                    <form action="{{ route('reception.patients.store') }}" method="POST">
+                    {{-- Alpine JS Data Scope --}}
+                    <form x-data="{ patientType: '{{ old('PatientType', 'General') }}' }"
+                          action="{{ route('reception.patients.store') }}" method="POST">
                         @csrf
 
-                        <!-- Patient Name -->
-                        <div class="mb-4">
-                            <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                            <input type="text" name="name" id="name" value="{{ old('name') }}" required 
-                                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                            @error('name')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                        <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Personal Information</h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">First Name</label>
+                                <input type="text" name="First_Name" value="{{ old('First_Name') }}" required
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Last Name</label>
+                                <input type="text" name="Last_Name" value="{{ old('Last_Name') }}" required
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
                         </div>
 
-                        <!-- Email Address -->
-                        <div class="mb-4">
-                            <label for="email" class="block text-sm font-medium text-gray-700">Email Address (Optional)</label>
-                            <input type="email" name="email" id="email" value="{{ old('email') }}" 
-                                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                            @error('email')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Phone Number</label>
+                                <input type="tel" name="Contact_Number" value="{{ old('Contact_Number') }}" required
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Email (Optional)</label>
+                                <input type="email" name="Email" value="{{ old('Email') }}"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            </div>
                         </div>
 
-                        <!-- Phone Number -->
-                        <div class="mb-4">
-                            <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                            <input type="tel" name="phone" id="phone" value="{{ old('phone') }}" required 
-                                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                            @error('phone')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Age</label>
+                                <input type="number" name="Age" value="{{ old('Age') }}" required min="0"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Gender</label>
+                                <select name="Gender" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                                    <option value="" disabled selected>Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <!-- Date of Birth -->
-                        <div class="mb-4">
-                            <label for="nAge" class="block text-gray-700 font-bold mb-2">Age:</label>
-                            <input type="number" name="nAge" id="nAge" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <input type="text" name="Street" placeholder="Street Address" required class="md:col-span-3 px-3 py-2 border rounded-md">
+                                <input type="text" name="City" placeholder="City" required class="px-3 py-2 border rounded-md">
+                                <input type="text" name="Zip" placeholder="Zip Code" required class="px-3 py-2 border rounded-md">
+                            </div>
                         </div>
 
-                        <!-- Gender -->
+                        <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Patient Type & Insurance</h3>
+
                         <div class="mb-4">
-                            <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
-                            <select name="gender" id="gender" required 
-                                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                                <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Select Gender</option>
-                                <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
-                                <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
-                                <option value="Other" {{ old('gender') == 'Other' ? 'selected' : '' }}>Other</option>
+                            <label class="block text-sm font-medium text-gray-700">Patient Category</label>
+                            <select name="PatientType" x-model="patientType" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                <option value="General">General / Non-Insured</option>
+                                <option value="Insured">Insured Patient</option>
                             </select>
-                            @error('gender')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
                         </div>
 
-                        <!-- Address -->
-                        <div class="mb-4">
-                            <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
-                            <textarea name="address" id="address" rows="3" required 
-                                      class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">{{ old('address') }}</textarea>
-                            @error('address')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                        <div x-show="patientType === 'Insured'" x-transition class="bg-blue-50 p-4 rounded-md border border-blue-200 mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-blue-800">Policy Number</label>
+                                    <input type="text" name="Policy_Number" placeholder="e.g. 0291212812"
+                                           class="mt-1 block w-full px-3 py-2 border border-blue-300 rounded-md shadow-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-blue-800">Provider Name</label>
+                                    <input type="text" name="Provider_Name" placeholder="e.g. Mustain BD"
+                                           class="mt-1 block w-full px-3 py-2 border border-blue-300 rounded-md shadow-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-blue-800">Coverage Limit</label>
+                                    <input type="number" step="0.01" name="Coverage_Limit" placeholder="e.g. 50000.00"
+                                           class="mt-1 block w-full px-3 py-2 border border-blue-300 rounded-md shadow-sm">
+                                </div>
+                            </div>
+                            @if ($errors->any())
+                                <div class="mt-2 text-red-600 text-sm">
+                                    Please check insurance fields if you selected 'Insured'.
+                                </div>
+                            @endif
                         </div>
 
                         <div class="flex items-center justify-end mt-6">
                             <a href="{{ route('reception.patients') }}" class="text-sm text-gray-600 hover:text-gray-900 mr-4">
                                 Cancel
                             </a>
-
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
+                            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 shadow-md transition">
                                 Register Patient
                             </button>
                         </div>
@@ -91,4 +120,6 @@
             </div>
         </div>
     </div>
+
+    <script src="//unpkg.com/alpinejs" defer></script>
 @endsection

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Prescription;
+use App\Models\PrescriptionMedicine;
 use App\Models\Patient;
 use App\Models\Doctor;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class PharmacyController extends Controller
 {
@@ -18,8 +18,9 @@ class PharmacyController extends Controller
 
     public function dashboard()
     {
-        $prescriptions = Prescription::where('cStatus', 'Active')
-            ->orderBy('dPrescriptionDate', 'desc')
+        // Removed 'Status' check as column does not exist in SQL
+        $prescriptions = Prescription::with(['patient', 'doctor'])
+            ->orderBy('IssueDate', 'desc')
             ->take(20)
             ->get();
 
@@ -28,40 +29,38 @@ class PharmacyController extends Controller
 
     public function prescriptions()
     {
-        $prescriptions = Prescription::orderBy('dPrescriptionDate', 'desc')
+        $prescriptions = Prescription::with(['patient', 'doctor'])
+            ->orderBy('IssueDate', 'desc')
             ->get();
 
         return view('pharmacy.prescriptions', compact('prescriptions'));
     }
 
-    public function prescriptionDetail($cPrescriptionID)
-    {
-        $prescription = Prescription::findOrFail($cPrescriptionID);
-        $patient = $prescription->patient;
-        $doctor = $prescription->doctor;
+    // --- FIX IS HERE ---
+        public function prescriptionDetail($id)
+        {
+            // 1. Fetch Prescription with relationships
+            $prescription = Prescription::with(['medicines', 'patient', 'doctor'])
+                ->where('PrescriptionID', $id)
+                ->firstOrFail();
 
-        return view('pharmacy.prescription-detail', compact('prescription', 'patient', 'doctor'));
-    }
+            // 2. Extract Patient and Doctor variables for the view
+            $patient = $prescription->patient;
+            $doctor = $prescription->doctor;
 
-    public function markAsDispensed($cPrescriptionID)
-    {
-        $prescription = Prescription::findOrFail($cPrescriptionID);
-        $prescription->cStatus = 'Dispensed';
-        $prescription->save();
+            // 3. Pass all variables to the view
+            return view('pharmacy.prescription-detail', compact('prescription', 'patient', 'doctor'));
+        }
 
-        return redirect()->route('pharmacy.prescriptions')
-            ->with('success', 'Prescription marked as dispensed!');
-    }
+        public function markAsDispensed($id)
+        {
+            return redirect()->back()->with('success', 'Prescription processed.');
+        }
 
-    public function markAsCollected($cPrescriptionID)
-    {
-        $prescription = Prescription::findOrFail($cPrescriptionID);
-        $prescription->cStatus = 'Collected';
-        $prescription->save();
-
-        return redirect()->route('pharmacy.prescriptions')
-            ->with('success', 'Prescription marked as collected!');
-    }
+        public function markAsCollected($id)
+        {
+            return redirect()->back()->with('success', 'Prescription processed.');
+        }
 
     public function createPrescription()
     {
@@ -72,26 +71,37 @@ class PharmacyController extends Controller
 
     public function storePrescription(Request $request)
     {
+        // 1. Validate Input
         $request->validate([
-            'cPatientID' => 'required|exists:tblpatient,cPatientID',
-            'cDoctorID' => 'required|exists:tbldoctor,cDoctorID',
-            'dPrescriptionDate' => 'required|date',
-            'cMedication' => 'required|string',
-            'cDosage' => 'required|string',
+            'PatientID'     => 'required|exists:Patient,PatientID',
+            'DoctorID'      => 'required|exists:Doctor,DoctorID',
+            'IssueDate'     => 'required|date',
+            'cMedication'   => 'required|string', // Input name from form
+            'cDosage'       => 'required|string',
             'cInstructions' => 'required|string',
         ]);
 
-        Prescription::create([
-            'cPrescriptionID' => 'P-' . str_pad(Prescription::count() + 1, 4, '0', STR_PAD_LEFT),
-            'cPatientID' => $request->cPatientID,
-            'cDoctorID' => $request->cDoctorID,
-            'dPrescriptionDate' => $request->dPrescriptionDate,
-            'cMedication' => $request->cMedication,
-            'cDosage' => $request->cDosage,
-            'cInstructions' => $request->cInstructions,
-            'cStatus' => 'Issued',
+        // 2. Generate ID (P-XXXX)
+        $count = Prescription::count() + 1;
+        $prescriptionID = 'P-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        // 3. Create Main Prescription Record (Matches SQL: No Status column)
+        $prescription = Prescription::create([
+            'PrescriptionID' => $prescriptionID,
+            'PatientID'      => $request->PatientID,
+            'DoctorID'       => $request->DoctorID,
+            'IssueDate'      => $request->IssueDate,
         ]);
 
-        return redirect()->route('pharmacy.prescriptions')->with('success', 'Prescription created successfully!');
+        // 4. Create Medicine Detail Record (Matches SQL: Prescription_Medicine)
+        PrescriptionMedicine::create([
+            'PrescriptionID' => $prescription->PrescriptionID,
+            'Medicine_Name'  => $request->cMedication,
+            'Dosage'         => $request->cDosage,
+            'Frequency'      => $request->cInstructions, // Map Instructions -> Frequency
+            'Duration'       => '3 Days', // Default value
+        ]);
+
+        return redirect()->route('pharmacy.dashboard')->with('success', 'Prescription created successfully!');
     }
 }

@@ -30,20 +30,30 @@
             <tbody class="text-gray-700">
                 @foreach($patients as $patient)
                 <tr class="hover:bg-gray-50">
+                    {{-- Patient ID --}}
                     <td class="px-5 py-5 border-b border-gray-200 text-sm">
-                        <p class="whitespace-no-wrap">{{ $patient->cPatientID }}</p>
+                        <p class="whitespace-no-wrap font-mono">{{ $patient->PatientID }}</p>
                     </td>
+
+                    {{-- Name (First + Last) --}}
                     <td class="px-5 py-5 border-b border-gray-200 text-sm">
-                        <p class="whitespace-no-wrap font-bold">{{ $patient->cName }}</p>
+                        <p class="whitespace-no-wrap font-bold">{{ $patient->First_Name }} {{ $patient->Last_Name }}</p>
                     </td>
+
+                    {{-- Email --}}
                     <td class="px-5 py-5 border-b border-gray-200 text-sm">
-                        <p class="whitespace-no-wrap">{{ $patient->cEmail }}</p>
+                        <p class="whitespace-no-wrap">{{ $patient->Email }}</p>
                     </td>
+
+                    {{-- Phone (Fetched from Patient_Number) --}}
                     <td class="px-5 py-5 border-b border-gray-200 text-sm">
-                        <p class="whitespace-no-wrap">{{ $patient->cPhone }}</p>
+                        <p class="whitespace-no-wrap">{{ $patient->Contact_Number ?? 'N/A' }}</p>
                     </td>
+
+                    {{-- Type (Insured/Non-Insured) --}}
                     <td class="px-5 py-5 border-b border-gray-200 text-sm">
-                        @if($patient->insurance)
+                        {{-- Checked via Insured_Patient table existence --}}
+                        @if($patient->is_insured)
                             <span class="relative inline-block px-3 py-1 font-semibold text-blue-900 leading-tight">
                                 <span aria-hidden class="absolute inset-0 bg-blue-200 opacity-50 rounded-full"></span>
                                 <span class="relative text-xs">Insured</span>
@@ -55,13 +65,15 @@
                             </span>
                         @endif
                     </td>
+
+                    {{-- Actions --}}
                     <td class="px-5 py-5 border-b border-gray-200 text-sm">
                         <div class="flex items-center space-x-4">
-                            <a href="{{ route('admin.patients.edit', $patient->cPatientID) }}" class="text-blue-600 hover:text-blue-900 font-bold">
+                            <a href="{{ route('admin.patients.edit', $patient->PatientID) }}" class="text-blue-600 hover:text-blue-900 font-bold">
                                 Edit
                             </a>
-                            <form action="{{ route('admin.patients.destroy', $patient->cPatientID) }}" method="POST"
-                                  onsubmit="return confirm('Are you sure you want to delete this patient? User account will also be removed.');"
+                            <form action="{{ route('admin.patients.destroy', $patient->PatientID) }}" method="POST"
+                                  onsubmit="return confirm('Are you sure you want to delete Patient {{ $patient->PatientID }}? This cannot be undone.');"
                                   class="inline-block">
                                 @csrf
                                 @method('DELETE')

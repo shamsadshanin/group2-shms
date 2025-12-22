@@ -4,17 +4,78 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3fc7dea6-73be-4305-8a29-18ffb0f9c2bb" name="Changes" comment="fixed admin-billing create blade">
+    <list default="true" id="3fc7dea6-73be-4305-8a29-18ffb0f9c2bb" name="Changes" comment="added insured claims on billing module, added patient type on patient module">
+      <change afterPath="$PROJECT_DIR$/laravel/app/Models/DiseasePrediction.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/laravel/app/Models/DoctorAvailability.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/laravel/app/Models/DoctorNumber.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/laravel/app/Models/PatientNumber.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/laravel/app/Models/PrescriptionMedicine.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/laravel/resources/views/doctor/medical-records/create.blade.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/laravel/resources/views/doctor/patients/edit.blade.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/laravel/resources/views/doctor/patients/history.blade.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/laravel/resources/views/doctor/prescriptions/show.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/laravel/app/Http/Controllers/AdminController.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Http/Controllers/AdminController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Http/Controllers/DoctorController.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Http/Controllers/DoctorController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Http/Controllers/LabTechnicianController.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Http/Controllers/LabTechnicianController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Http/Controllers/PatientController.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Http/Controllers/PatientController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Http/Controllers/PharmacyController.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Http/Controllers/PharmacyController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Http/Controllers/ReceptionController.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Http/Controllers/ReceptionController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Models/Appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/Appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Models/Billing.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/Billing.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Models/Doctor.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/Doctor.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/laravel/app/Models/InsuredPatient.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/InsuredPatient.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/laravel/app/Models/NonInsuredPatient.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/NonInsuredPatient.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Models/LabTechnician.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/LabTechnician.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Models/LabTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/LabTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Models/MedicalRecord.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/MedicalRecord.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/laravel/app/Models/Patient.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/Patient.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Models/Prescription.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/Prescription.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Models/SymptomInput.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/SymptomInput.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/app/Models/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/app/Models/User.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/analytics.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/analytics.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/appointments.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/appointments.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/appointments/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/appointments/create.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/appointments/edit.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/appointments/edit.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/appointments/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/appointments/index.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/billing.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/billing.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/billing/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/billing/create.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/billing/edit.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/billing/edit.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/billing/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/billing/index.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/dashboard.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/dashboard.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/doctors/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/doctors/create.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/doctors/edit.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/doctors/edit.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/doctors/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/doctors/index.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/patients/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/patients/create.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/patients/edit.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/patients/edit.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/patients/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/patients/index.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/reports.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/reports.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/users/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/users/create.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/users/edit.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/users/edit.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/admin/users/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/admin/users/index.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/doctor/appointments.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/doctor/appointments.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/doctor/appointments/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/doctor/appointments/create.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/doctor/dashboard.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/doctor/dashboard.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/doctor/patient-history.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/doctor/prescriptions.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/doctor/prescriptions.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/doctor/prescriptions/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/doctor/prescriptions/create.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/lab/dashboard.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/lab/dashboard.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/lab/tests.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/lab/tests.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/lab/tests/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/lab/tests/create.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/lab/tests/show.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/lab/tests/show.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/patient/appointments.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/patient/appointments.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/patient/billing.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/patient/billing.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/patient/book-appointment.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/patient/book-appointment.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/patient/medical-history.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/patient/medical-history.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/patient/prescriptions.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/patient/prescriptions.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/patient/symptom-checker.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/patient/symptom-checker.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/pharmacy/dashboard.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/pharmacy/dashboard.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/pharmacy/prescription-detail.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/pharmacy/prescription-detail.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/pharmacy/prescriptions.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/pharmacy/prescriptions.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/reception/appointments.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/reception/appointments.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/reception/dashboard.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/reception/dashboard.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/reception/patients.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/reception/patients.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/resources/views/reception/patients/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/resources/views/reception/patients/create.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/laravel/routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/laravel/routes/web.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,6 +119,10 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Shanin\Desktop\group2-shms-final\laravel\resources\views\admin\billing" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Shanin\Desktop\group2-shms-final\laravel\resources\views\doctor\patients" />
+      <recent name="C:\Users\Shanin\Desktop\group2-shms-final\laravel\resources\views\doctor\prescriptions" />
     </key>
   </component>
   <component name="RunManager">
@@ -113,7 +178,15 @@
       <option name="project" value="LOCAL" />
       <updated>1766207375258</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="added insured claims on billing module, added patient type on patient module">
+      <option name="closed" value="true" />
+      <created>1766293486480</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1766293486480</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -124,6 +197,7 @@
     <MESSAGE value="fixed PatientController" />
     <MESSAGE value="fixed PharmacyController" />
     <MESSAGE value="fixed admin-billing create blade" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed admin-billing create blade" />
+    <MESSAGE value="added insured claims on billing module, added patient type on patient module" />
+    <option name="LAST_COMMIT_MESSAGE" value="added insured claims on billing module, added patient type on patient module" />
   </component>
 </project>
